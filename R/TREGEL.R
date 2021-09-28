@@ -17,9 +17,9 @@
 
 
 
-#TREGELtest <- TREGELDataSet(queryFolder="/mnt/idata/TREGEL/tool/TREGEL3/data/human/query")
+#TREGELtest <- TREGELDataSet(queryFolder="/mnt/idata/TREGEL/tool/TREGEL3/data/human/query",subjectFolder="/mnt/idata/TREGEL/tool/TREGEL3/data/human/subject")
 #TREGELtest <- loadAnnotations(TREGELtest)
-#TREGELtest <- loadAnnotations(TREGELtest)
+#TREGELtest <- fOverlaps(TREGELtest)
 
 
 

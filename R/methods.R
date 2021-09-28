@@ -5,33 +5,15 @@
 
 loadAnnotations <- function(TREGELDataSet){
   TREGELDataSet <- readQuery(TREGELDataSet)
-  #TREGELDataSet <- readSubject(TREGELDataSet)
+  TREGELDataSet <- readSubject(TREGELDataSet)
 
  return(TREGELDataSet)
 }
 
-  if (FALSE){
-    metadata(TREGELDataSet)=readRDS(list.files(metadata(TREGELDataSet)$queryFolder,full.names =TRUE )[[1]])
-  #colnames(mcols(query(obj)))=c("name","id")
-
-  # v$geneGR=makeGRangesFromDataFrame(hggeneCoord,keep.extra.columns = TRUE)
-  #   v$itracks=hgitracks
-  #   v$regEle=hgregEle
-  #   v$exon=hgExon
-  #
-  #   v$geneCoord=mmgeneCoord
-  #   colnames(mmgeneCoord)=c("chr","start","end","strand","symbol","id");v$geneGR=makeGRangesFromDataFrame(mmgeneCoord,keep.extra.columns = TRUE)
-  #   v$itracks=mmitracks
-  #   v$regEle=mmregEle
-  #   v$exon=mmExon
-
-  }
 
 
 
-#' Add together two numbers
-
-
+#' Read query
 readQuery=function(TREGELDataSet){
   if(is.na(metadata(TREGELDataSet)$queryFolder)){ #if no folder supplied, check default folder
     #query(obj) <- readRDS()
@@ -42,17 +24,63 @@ readQuery=function(TREGELDataSet){
   }else{ #read queryFolder
     queryPath <- list.files(metadata(TREGELDataSet)$queryFolder,full.names = TRUE)
     queryName <- tools::file_path_sans_ext(list.files(metadata(TREGELDataSet)$queryFolder))
-    TREGELDataSet[["queryName"]]<- readRDS(queryPath)
+    TREGELDataSet[[queryName]]<- readRDS(queryPath)
     #query(obj)<- makeGRangesFromDataFrame(query(obj),keep.extra.columns = TRUE)
     #colnames(mcols(query(obj)))=c("name","id")
   }
+  assertthat::assert_that(c("ID")%in%names(mcols(TREGELDataSet[[queryName]])),msg="Query must contain ID column.")
+  assertthat::assert_that(!any(duplicated(TREGELDataSet[[queryName]]$ID)),msg="ID column must be unique.")
+
   return(TREGELDataSet)
 }
 
-#' Add together two numbers
+#' Read subjects
+readSubject=function(TREGELDataSet){
+  if(is.na(metadata(TREGELDataSet)$subjectFolder)){ #if no folder supplied, check default folder
 
-readRubject=function(TREGELDataSet){
+    #query(obj) <- readRDS()
+    #colnames(mcols(query(obj)))=c("name","id")
+    #query(obj)<- makeGRangesFromDataFrame(query(obj),keep.extra.columns = TRUE)
+    #obj <- readQuery(obj)
 
+  }else{ #read queryFolder
+    subjectPath <- list.files(metadata(TREGELDataSet)$subjectFolder,full.names = TRUE)
+    subjectName <- tools::file_path_sans_ext(list.files(metadata(TREGELDataSet)$subjectFolder))
+    TREGELDataSet <- c(TREGELDataSet,mapply(function(x,y){
+      tmp=readRDS(y)
+      assertthat::assert_that(c("ID")%in%names(mcols(tmp)),msg="Query must contain ID column.")
+      assertthat::assert_that(!any(duplicated(tmp$ID)),msg="ID column must be unique.")
+      tmp
+    },x=subjectName,y=subjectPath))
+  }
+  return(TREGELDataSet)
+
+}
+
+#' Find overlaps for query and subject
+fOverlaps <- function(TREGELDataSet){
+  detailDT <- data.table() #data table to store all overlaps for query vs all subjects
+  sumDT <- data.table()
+  s <- NULL
+  for(subj in names(TREGELDataSet[2:length(TREGELDataSet)])){
+    ol <- findOverlaps(TREGELDataSet[[1]],TREGELDataSet[[subj]])
+    ol <- data.table(q=queryHits(ol),s=mcols(TREGELDataSet[[subj]])[subjectHits(ol),1])
+    detailDT <- rbind(detailDT,data.table(queryID=mcols(TREGELDataSet[[1]])[ol$q,"ID"],
+                                   subjID=ol$s,
+                                   subjType=subj,
+                                   subjChr=as.character(seqnames(TREGELDataSet[[subj]]))[match(ol$s,mcols(TREGELDataSet[[subj]])[,"ID"])],
+                                   subjStart=start(TREGELDataSet[[subj]])[match(ol$s,mcols(TREGELDataSet[[subj]])[,"ID"])],
+                                   subjEnd=end(TREGELDataSet[[subj]])[match(ol$s,mcols(TREGELDataSet[[subj]])[,"ID"])]
+    ))
+    ol <- ol[,list(s=paste(s,collapse = " ")),by="q"]
+    ol$q <- mcols(TREGELDataSet[[1]])[ol$q,"ID"]
+    ol$subjType <- subj
+    names(ol) <- c("queryID","subjID","subjType")
+    sumDT <- rbind(sumDT,ol)
+  }
+  metadata(TREGELDataSet)$detailDT <- detailDT
+  metadata(TREGELDataSet)$sumDT <- sumDT
+  return(TREGELDataSet)
 }
 
 #' Add together two numbers
