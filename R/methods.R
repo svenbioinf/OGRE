@@ -62,7 +62,8 @@ fOverlaps <- function(TREGELDataSet){
   detailDT <- data.table() #data table to store all overlaps for query vs all subjects
   sumDT <- data.table()
   s <- NULL
-  for(subj in names(TREGELDataSet[2:length(TREGELDataSet)])){
+  metadata(TREGELDataSet)$subjectNames <- names(TREGELDataSet[2:length(TREGELDataSet)])
+  for(subj in metadata(TREGELDataSet)$subjectNames){
     ol <- findOverlaps(TREGELDataSet[[1]],TREGELDataSet[[subj]])
     ol <- data.table(q=queryHits(ol),s=mcols(TREGELDataSet[[subj]])[subjectHits(ol),1])
     detailDT <- rbind(detailDT,data.table(queryID=mcols(TREGELDataSet[[1]])[ol$q,"ID"],
@@ -82,6 +83,44 @@ fOverlaps <- function(TREGELDataSet){
   metadata(TREGELDataSet)$sumDT <- sumDT
   return(TREGELDataSet)
 }
+
+#' Summary barplot
+sumPlot <- function(TREGELDataSet){
+  #summary barplot
+  query_N <- length(unique(mcols(TREGELDataSet[[1]])$ID))
+  query_ol <- length(unique(metadata(TREGELDataSet)$sumDT$queryID))
+  query_No_ol <- query_N-query_ol
+  query_full <- sum(table(metadata(TREGELDataSet)$sumDT$queryID)>=length(TREGELDataSet)-1)
+
+  dtbarplot=data.table(x=c("query_N","query_w_minOne_overlap","genes_w_overlap_allSubjTypes"),query=c(query_N,query_ol,query_full))
+  dtbarplot$x=factor(x = dtbarplot$x,levels = c("query_N","query_w_minOne_overlap","genes_w_overlap_allSubjTypes"))
+  dtbarplot$lab=c(paste0("Total number of submitted queries: ",query_N," (100%)"),
+                  paste0("Queries with >=1 subject overlaps: ",query_ol," (",round(query_ol/query_N*100),"%)"),
+                  paste0("Queries with overlaps in all subject types: ",query_full," (",round(query_full/query_N*100),"%)"))
+  dtbarplot$sequence=3:1
+  dtbarplot$xtext=dtbarplot$sequence+0.55;dtbarplot$col="steelblue2"
+  metadata(TREGELDataSet)$barplot_summary_dt <- dtbarplot
+
+  temp=sapply(metadata(TREGELDataSet)$subjectNames,function(x){length(unique(metadata(TREGELDataSet)$detailDT[metadata(TREGELDataSet)$detailDT$subjType==x,][["queryID"]]))})
+  temp=data.table(x=names(temp),Subjects=temp,lab=paste0("Queries with ",names(temp),": ",temp," (",round(temp/query_N*100),"%)"),sequence="NA",xtext="NA",col="steelblue3")
+  subjPerQuery=round(sapply(metadata(TREGELDataSet)$subjectNames,function(x){sum(metadata(TREGELDataSet)$detailDT$subjType==x)})/temp[["Subjects"]][temp$x==x],digits=1)
+  subjPerQuery=data.table(x=names(subjPerQuery),Subjects=subjPerQuery,lab=paste0("Average ",names(subjPerQuery)," per subject: ",subjPerQuery),sequence="NA",xtext="NA",col="steelblue4")
+
+  dtbarplotDetailed=rbind(dtbarplot,temp,subjPerQuery, use.names=FALSE)
+  dtbarplotDetailed$sequence=dim(dtbarplotDetailed)[1]:1
+  dtbarplotDetailed$xtext=dtbarplotDetailed$sequence+0.55
+  dtbarplotDetailed$query=log2(dtbarplotDetailed$query)
+  metadata(TREGELDataSet)$barplot_summary_dt <- dtbarplotDetailed
+  metadata(TREGELDataSet)$barplot_summary <- ggplot(dtbarplotDetailed, aes(x = sequence, y =query,fill=col)) +
+      geom_bar(stat = "identity", width = 0.3) +
+      scale_fill_manual(guide=FALSE,values = c("steelblue2" = "steelblue2", "steelblue3" = "steelblue3", "steelblue4" = "steelblue4"))+
+      coord_flip() +labs(x = "", y = "Log2(N)") +theme_bw() +  theme_classic() +
+      theme(axis.text.y = element_blank(), axis.ticks.y = element_blank()) +
+      geom_text(aes(x = xtext, y = 0, label = lab),size=7,hjust = 0, vjust = 1) +guides(size = FALSE)
+    ggsave(plot=metadata(TREGELDataSet)$barplot_summary,path=metadata(TREGELDataSet)$outputFolder,width = 30,filename="Barplot_Summary.png",height = 20,dpi = 400,units = "cm")
+}
+
+
 
 #' Add together two numbers
 
