@@ -2,7 +2,9 @@
 
 export(TREGELDataSet)
 import(GenomicRanges)
+import(Gviz)
 import(S4Vectors)
 import(data.table)
+import(ggplot2)
 import(methods)
 importFrom(assertthat,assert_that)

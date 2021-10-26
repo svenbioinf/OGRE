@@ -57,6 +57,10 @@ readSubject=function(TREGELDataSet){
 
 }
 
+
+
+
+
 #' Find overlaps for query and subject
 fOverlaps <- function(TREGELDataSet){
   detailDT <- data.table() #data table to store all overlaps for query vs all subjects
@@ -97,14 +101,13 @@ sumPlot <- function(TREGELDataSet){
   dtbarplot$lab=c(paste0("Total number of submitted queries: ",query_N," (100%)"),
                   paste0("Queries with >=1 subject overlaps: ",query_ol," (",round(query_ol/query_N*100),"%)"),
                   paste0("Queries with overlaps in all subject types: ",query_full," (",round(query_full/query_N*100),"%)"))
-  dtbarplot$sequence=3:1
-  dtbarplot$xtext=dtbarplot$sequence+0.55;dtbarplot$col="steelblue2"
+  dtbarplot$col="steelblue2"
   metadata(TREGELDataSet)$barplot_summary_dt <- dtbarplot
 
   temp=sapply(metadata(TREGELDataSet)$subjectNames,function(x){length(unique(metadata(TREGELDataSet)$detailDT[metadata(TREGELDataSet)$detailDT$subjType==x,][["queryID"]]))})
-  temp=data.table(x=names(temp),Subjects=temp,lab=paste0("Queries with ",names(temp),": ",temp," (",round(temp/query_N*100),"%)"),sequence="NA",xtext="NA",col="steelblue3")
+  temp=data.table(x=names(temp),Subjects=temp,lab=paste0("Queries with ",names(temp),": ",temp," (",round(temp/query_N*100),"%)"),col="steelblue3")
   subjPerQuery=round(sapply(metadata(TREGELDataSet)$subjectNames,function(x){sum(metadata(TREGELDataSet)$detailDT$subjType==x)})/temp[["Subjects"]][temp$x==x],digits=1)
-  subjPerQuery=data.table(x=names(subjPerQuery),Subjects=subjPerQuery,lab=paste0("Average ",names(subjPerQuery)," per subject: ",subjPerQuery),sequence="NA",xtext="NA",col="steelblue4")
+  subjPerQuery=data.table(x=names(subjPerQuery),Subjects=subjPerQuery,lab=paste0("Average ",names(subjPerQuery)," per subject: ",subjPerQuery),col="steelblue4")
 
   dtbarplotDetailed=rbind(dtbarplot,temp,subjPerQuery, use.names=FALSE)
   dtbarplotDetailed$sequence=dim(dtbarplotDetailed)[1]:1
@@ -118,8 +121,48 @@ sumPlot <- function(TREGELDataSet){
       theme(axis.text.y = element_blank(), axis.ticks.y = element_blank()) +
       geom_text(aes(x = xtext, y = 0, label = lab),size=7,hjust = 0, vjust = 1) +guides(size = FALSE)
     ggsave(plot=metadata(TREGELDataSet)$barplot_summary,path=metadata(TREGELDataSet)$outputFolder,width = 30,filename="Barplot_Summary.png",height = 20,dpi = 400,units = "cm")
+    return(TREGELDataSet)
 }
 
+#'Gviz plotting
+#'
+gvizPlot <- function(TREGELDataSet,query,trackRegionLabels=setNames(rep("ID",length(TREGELDataSet)),names(TREGELDataSet))){
+  for(q in query){
+    #Subject tracks
+    GvizSubjTracks=lapply(metadata(TREGELDataSet)$subjectNames,function(x){
+      tmp=metadata(TREGELDataSet)$detailDT[subjType==x & queryID==q]
+      if(dim(tmp)[1]>25){tmp=tmp[sample(1:dim(tmp)[1],size = 25),]}
+      regionLabels=mcols(TREGELDataSet[[x]])[[trackRegionLabels[x]]][match(tmp$subjID,mcols(TREGELDataSet[[x]])[["ID"]])]
+        if(dim(tmp)[1]!=0){# if subjectType overlaps with query create track
+          AnnotationTrack(start=tmp$subjStart,end = tmp$subjEnd,chr=tmp$subjChr,name=x,id = regionLabels,
+                        fontsize.title=24,featureAnnotation="id",fontcolor.title="black",fontcolor="black",
+                        fontcolor.group="black",fontcolor.item="black",rotation.item=20)
+        }else{
+          AnnotationTrack(GRanges(),name = x,fontcolor.title="black",fontsize.title=24)
+        }
+    })
+    #Gviz helper tracks
+    chr=GvizSubjTracks[[1]]@chromosome
+    itrack =IdeogramTrack(genome="hg38",chromosome=chr)#ideogram track (chromosome bands etc)
+    gtrack=GenomeAxisTrack()
+    queryGR=TREGELDataSet[[1]][mcols(TREGELDataSet[[1]])$ID==q]
+    from = start(queryGR)-300  #add 300bp left and righ as plotWindow
+    to = end(queryGR)+300
+    plotWindow=GRanges(seqnames=chr,ranges=IRanges(start = from, end = to))
+    #Gviz query track
+    regionLabels=mcols(queryGR)[[trackRegionLabels[1]]]
+    queryTrack=AnnotationTrack(range=queryGR,name="Query",fill="red",arrowHeadWidth=30,shape="fixedArrow",featureAnnotation="id",
+                               id=regionLabels,fontsize.group=20,fontsize.title=24,fontcolor.title="black")#,stacking = "dense"
+    allTracks=c(itrack,gtrack,queryTrack,GvizSubjTracks)#;names(temp)=make.unique(names(temp))
+     #Gviz plotting
+    pdf(file.path(metadata(TREGELDataSet)$gvizPlotsFolder,paste0(q,".pdf")),width = 30/2.54,height = 20/2.54)
+    plotTracks(allTracks,showOverplotting=TRUE,from = from, to = to,title.width=6,rotation.title=0,background.title="white",just.group="above") #20%BP up/down
+    dev.off()
+
+  }
+
+
+}
 
 
 #' Add together two numbers

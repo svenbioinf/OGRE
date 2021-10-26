@@ -1,6 +1,6 @@
 #' BuildTREGELDataSet
 #'
-#' @import GenomicRanges S4Vectors methods data.table
+#' @import GenomicRanges S4Vectors methods data.table ggplot2 Gviz
 #' @importFrom assertthat assert_that
 #' @export
 TREGELDataSet <- function(queryFolder,subjectFolder){
@@ -9,7 +9,8 @@ TREGELDataSet <- function(queryFolder,subjectFolder){
   metadata(TREGELDataSet)$subjectFolder <- subjectFolder
                                           dir.create(file.path(dirname(metadata(TREGELDataSet)$queryFolder), "output")) #move up one level
   metadata(TREGELDataSet)$outputFolder <- file.path(dirname(metadata(TREGELDataSet)$queryFolder), "output") #move up one level
-
+                                          dir.create(file.path(dirname(metadata(TREGELDataSet)$outputFolder), "gvizPlots")) #move up one level
+  metadata(TREGELDataSet)$gvizPlotsFolder <- file.path(dirname(metadata(TREGELDataSet)$outputFolder), "gvizPlots") #move up one level
   metadata(TREGELDataSet)$detailDT <- NA
   metadata(TREGELDataSet)$sumDT <- NA
   metadata(TREGELDataSet)$barplot_summary <- NA
