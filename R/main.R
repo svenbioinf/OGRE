@@ -1,9 +1,10 @@
 #' BuildTREGELDataSet
 #'
-#' @import GenomicRanges S4Vectors methods data.table ggplot2 Gviz
+#' @import GenomicRanges S4Vectors methods data.table ggplot2 Gviz IRanges
 #' @importFrom assertthat assert_that
 #' @export
 TREGELDataSet <- function(queryFolder,subjectFolder){
+  message("Initializing TREGELDataSet... ")
   TREGELDataSet <- GRangesList()
   metadata(TREGELDataSet)$queryFolder <- queryFolder
   metadata(TREGELDataSet)$subjectFolder <- subjectFolder

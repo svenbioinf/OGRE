@@ -2,6 +2,7 @@
 #'
 #' @param TREGELDataSet A TREGELDataSet.
 #' @return TREGELDataSet.
+#' @export
 
 loadAnnotations <- function(TREGELDataSet){
   TREGELDataSet <- readQuery(TREGELDataSet)
@@ -15,6 +16,7 @@ loadAnnotations <- function(TREGELDataSet){
 
 #' Read query
 readQuery=function(TREGELDataSet){
+  message("Reading query dataset... ")
   if(is.na(metadata(TREGELDataSet)$queryFolder)){ #if no folder supplied, check default folder
     #query(obj) <- readRDS()
     #colnames(mcols(query(obj)))=c("name","id")
@@ -36,6 +38,7 @@ readQuery=function(TREGELDataSet){
 
 #' Read subjects
 readSubject=function(TREGELDataSet){
+  message("Reading subjet datasets... ")
   if(is.na(metadata(TREGELDataSet)$subjectFolder)){ #if no folder supplied, check default folder
 
     #query(obj) <- readRDS()
@@ -62,6 +65,9 @@ readSubject=function(TREGELDataSet){
 
 
 #' Find overlaps for query and subject
+#' @param TREGELDataSet A TREGELDataSet.
+#' @return TREGELDataSet.
+#' @export
 fOverlaps <- function(TREGELDataSet){
   detailDT <- data.table() #data table to store all overlaps for query vs all subjects
   sumDT <- data.table()
@@ -89,6 +95,9 @@ fOverlaps <- function(TREGELDataSet){
 }
 
 #' Summary barplot
+#' @param TREGELDataSet A TREGELDataSet.
+#' @return TREGELDataSet.
+#' @export
 sumPlot <- function(TREGELDataSet){
   #summary barplot
   query_N <- length(unique(mcols(TREGELDataSet[[1]])$ID))
@@ -106,13 +115,13 @@ sumPlot <- function(TREGELDataSet){
 
   temp=sapply(metadata(TREGELDataSet)$subjectNames,function(x){length(unique(metadata(TREGELDataSet)$detailDT[metadata(TREGELDataSet)$detailDT$subjType==x,][["queryID"]]))})
   temp=data.table(x=names(temp),Subjects=temp,lab=paste0("Queries with ",names(temp),": ",temp," (",round(temp/query_N*100),"%)"),col="steelblue3")
-  subjPerQuery=round(sapply(metadata(TREGELDataSet)$subjectNames,function(x){sum(metadata(TREGELDataSet)$detailDT$subjType==x)})/temp[["Subjects"]][temp$x==x],digits=1)
+  subjPerQuery=round(sapply(metadata(TREGELDataSet)$subjectNames,function(x){sum(metadata(TREGELDataSet)$detailDT$subjType==x)})/query_N,digits=1)
   subjPerQuery=data.table(x=names(subjPerQuery),Subjects=subjPerQuery,lab=paste0("Average ",names(subjPerQuery)," per subject: ",subjPerQuery),col="steelblue4")
 
   dtbarplotDetailed=rbind(dtbarplot,temp,subjPerQuery, use.names=FALSE)
   dtbarplotDetailed$sequence=dim(dtbarplotDetailed)[1]:1
   dtbarplotDetailed$xtext=dtbarplotDetailed$sequence+0.55
-  dtbarplotDetailed$query=log2(dtbarplotDetailed$query)
+  dtbarplotDetailed$query=log2(dtbarplotDetailed$query+1)#add +1 to avoid log2(1)=0 and log2(0)=-inf
   metadata(TREGELDataSet)$barplot_summary_dt <- dtbarplotDetailed
   metadata(TREGELDataSet)$barplot_summary <- ggplot(dtbarplotDetailed, aes(x = sequence, y =query,fill=col)) +
       geom_bar(stat = "identity", width = 0.3) +
@@ -125,7 +134,9 @@ sumPlot <- function(TREGELDataSet){
 }
 
 #'Gviz plotting
-#'
+#' @param TREGELDataSet A TREGELDataSet.
+#' @return TREGELDataSet.
+#' @export
 gvizPlot <- function(TREGELDataSet,query,trackRegionLabels=setNames(rep("ID",length(TREGELDataSet)),names(TREGELDataSet))){
   for(q in query){
     #Subject tracks
@@ -148,7 +159,7 @@ gvizPlot <- function(TREGELDataSet,query,trackRegionLabels=setNames(rep("ID",len
     queryGR=TREGELDataSet[[1]][mcols(TREGELDataSet[[1]])$ID==q]
     from = start(queryGR)-300  #add 300bp left and righ as plotWindow
     to = end(queryGR)+300
-    plotWindow=GRanges(seqnames=chr,ranges=IRanges(start = from, end = to))
+    plotWindow=GRanges(seqnames=chr,ranges=IRanges::IRanges(start = from, end = to))
     #Gviz query track
     regionLabels=mcols(queryGR)[[trackRegionLabels[1]]]
     queryTrack=AnnotationTrack(range=queryGR,name="Query",fill="red",arrowHeadWidth=30,shape="fixedArrow",featureAnnotation="id",
@@ -158,7 +169,7 @@ gvizPlot <- function(TREGELDataSet,query,trackRegionLabels=setNames(rep("ID",len
     pdf(file.path(metadata(TREGELDataSet)$gvizPlotsFolder,paste0(q,".pdf")),width = 30/2.54,height = 20/2.54)
     plotTracks(allTracks,showOverplotting=TRUE,from = from, to = to,title.width=6,rotation.title=0,background.title="white",just.group="above") #20%BP up/down
     dev.off()
-
+  return(TREGELDataSet)
   }
 
 

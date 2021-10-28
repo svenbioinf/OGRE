@@ -1,0 +1,93 @@
+---
+title: "TREGEL, identify overlapping genetic regions"
+author: "Sven Berres"
+date: "`r format(Sys.Date(), '%m/%d/%Y')`"
+abstract: >
+  Abstract here
+
+  TREGEL3 package version: `r packageVersion("TREGEL3")`
+output:
+  rmarkdown::html_document:
+    highlight: pygments
+    toc: true
+    fig_width: 5
+
+vignette: >
+  %\VignetteIndexEntry{TREGEL3}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+  %\usepackage[utf8]{inputenc}
+  %\VignetteBuilder{knitr}
+---
+
+```{r setup, echo=FALSE, results="hide"}
+knitr::opts_chunk$set(tidy = FALSE,
+                      cache = FALSE,
+                      dev = "png",
+                      message = FALSE, error = FALSE, warning = TRUE)
+if(dir.exists("../inst/extdata")){
+  knitr::opts_knit$set(root.dir = "../inst/extdata")
+}else{
+  knitr::opts_knit$set(root.dir = "../extdata")
+}
+```	
+
+# Standard workflow
+
+**Note:** if you use TREGEL3 in published research, please cite:
+
+#> "Sven Berres" (2021)
+#> *some journal*, **Jnumber**:pageNr.
+#> [insertdoi](http://linkmissing)
+Other Bioconductor packages with similar aims are
+[edgeR](http://bioconductor.org/packages/edgeR),
+[limma](http://bioconductor.org/packages/limma).
+
+## Setup
+
+Load the TREGEL3 package: 
+
+```{r message=TRUE, warning=FALSE}
+library(TREGEL3)
+
+```
+## Quick start
+
+Here we show the quick start: Query and subjects files can be conveniently stored in separate folders. We show TREGEL the location by supplying a path for each folder with the character vectors  `queryFolder` and `subjectFolder`. 
+```{r checkwd, message=TRUE, echo=TRUE,warning=TRUE}
+getwd()
+```
+```{r InitializeTREGEL, message=TRUE, echo=TRUE,warning=TRUE}
+TREGELtest <- TREGELDataSet(queryFolder="./query",subjectFolder="./subject")
+S4Vectors::metadata(TREGELtest)
+```
+Loading your dataset annotations
+```{r loadAnnotations, message=TRUE, echo=TRUE,warning=TRUE}
+
+TREGELtest <- loadAnnotations(TREGELtest)
+TREGELtest
+```
+Finding Overlaps between query and subject(s)
+```{r fOverlaps, message=TRUE, echo=TRUE,warning=TRUE}
+TREGELtest <- fOverlaps(TREGELtest)
+S4Vectors::metadata(TREGELtest)$subjectNames
+head(S4Vectors::metadata(TREGELtest)$detailDT)
+#saveRDS(TREGELtest,file="/mnt/idata/TREGEL/tool/TREGELtest.RDS")
+```
+Greating a summary plot
+```{r sumPlot, echo=TRUE, message=TRUE, warning=TRUE,fig.dim = c(30/2.54, 20/2.54)}
+ TREGELtest <- sumPlot(TREGELtest)
+ S4Vectors::metadata(TREGELtest)$barplot_summary
+```
+Greating gene plots
+```{r gvizPlot, message=TRUE, echo=TRUE,warning=TRUE}
+ TREGELtest <- gvizPlot(TREGELtest,"ENSMUSG00000068196",trackRegionLabels = setNames(c("name","ID","name"),c("genes","CGI","TFBS")))
+```
+
+The following starting functions will be explained below:
+
+* If you have performed transcript quantification 
+  (with *Salmon*, *kallisto*, *RSEM*, etc.) 
+
+
+
