@@ -4,6 +4,12 @@
 #' @importFrom assertthat assert_that
 #' @export
 TREGELDataSet <- function(queryFolder,subjectFolder){
+  assertthat::assert_that(!is.null(queryFolder),msg="Please specify query folder!")
+  assertthat::assert_that(!is.null(subjectFolder),msg="Please specify subject folder!")
+  assertthat::assert_that(is(queryFolder,"character"),msg="queryFolder must be of type character!")
+  assertthat::assert_that(is(subjectFolder,"character"),msg="subjectFolder must be of type character!")
+
+
   message("Initializing TREGELDataSet... ")
   TREGELDataSet <- GRangesList()
   metadata(TREGELDataSet)$queryFolder <- queryFolder

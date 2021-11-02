@@ -6,6 +6,12 @@
 \usage{
 fOverlaps(TREGELDataSet)
 }
+\arguments{
+\item{TREGELDataSet}{A TREGELDataSet.}
+}
+\value{
+TREGELDataSet.
+}
 \description{
 Find overlaps for query and subject
 }

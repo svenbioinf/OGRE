@@ -6,6 +6,12 @@
 \usage{
 sumPlot(TREGELDataSet)
 }
+\arguments{
+\item{TREGELDataSet}{A TREGELDataSet.}
+}
+\value{
+TREGELDataSet.
+}
 \description{
 Summary barplot
 }

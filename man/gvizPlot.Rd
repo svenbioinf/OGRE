@@ -10,6 +10,12 @@ gvizPlot(
   trackRegionLabels = setNames(rep("ID", length(TREGELDataSet)), names(TREGELDataSet))
 )
 }
+\arguments{
+\item{TREGELDataSet}{A TREGELDataSet.}
+}
+\value{
+TREGELDataSet.
+}
 \description{
 Gviz plotting
 }

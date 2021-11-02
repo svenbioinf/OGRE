@@ -2,7 +2,7 @@
 % Please edit documentation in R/methods.R
 \name{loadAnnotations}
 \alias{loadAnnotations}
-\title{loadAnnotations}
+\title{Load annotation datasets}
 \usage{
 loadAnnotations(TREGELDataSet)
 }
@@ -10,8 +10,10 @@ loadAnnotations(TREGELDataSet)
 \item{TREGELDataSet}{A TREGELDataSet.}
 }
 \value{
-TREGELDataSet.
+A TREGELDataSet.
 }
 \description{
-loadAnnotations
+Load dataset files containing genomic regions annotation information from hard drive. \code{loadAnnotations} calls \code{readQuery} and \code{readSubject}
+to read in genomic regions as \code{GenomicRanges} objects stored as .RDS / .rds files. Each region needs chromosome, start, end and strand information.
+Mcols must contain a unique ID and a name column. TREGEL searches for the query file in your query folder and any number of subject files in your subjects folder.
 }
