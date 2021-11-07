@@ -1,0 +1,97 @@
+---
+title: "The TREGEL user guide"
+author: "Sven Berres"
+date: "`r format(Sys.Date(), '%m/%d/%Y')`"
+abstract: >
+  Abstract here
+
+  TREGEL package version: `r packageVersion("TREGEL")`
+output:
+#  rmarkdown::html_document:
+    rmarkdown::html_document:
+    highlight: pygments
+    toc: true
+    fig_width: 5
+
+vignette: >
+  %\VignetteIndexEntry{TREGEL3}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+  %\usepackage[utf8]{inputenc}
+  %\VignetteBuilder{knitr}
+---
+
+```{r setup, echo=FALSE, results="hide"}
+knitr::opts_chunk$set(tidy = FALSE,
+                      cache = FALSE,
+                      dev = "png",
+                      message = FALSE, error = FALSE, warning = TRUE)
+if(dir.exists("../inst/extdata")){
+  knitr::opts_knit$set(root.dir = "../inst/extdata")
+}else{
+  knitr::opts_knit$set(root.dir = "../extdata")
+}
+```	
+
+## Introduction
+
+**Note:** if you use TREGEL3 in published research, please cite:
+
+#> "Sven Berres" (2021)
+#> *some journal*, **Jnumber**:pageNr.
+#> [insertdoi](http://linkmissing)
+Other Bioconductor packages with similar aims are
+[testPackage](http://testlink/testlink).
+
+## Setup
+
+Load the TREGEL3 package: 
+
+```{r message=TRUE, warning=FALSE}
+library(TREGEL3)
+
+```
+## Quick start
+
+To start up TREGEL you have to generate a `TREGELDataSet` that is used to store your data sets and additional information about the analysis that you are conducting. Query and subjects files can be conveniently stored in their own folders as GRanges objects if form of stored .rds / .RDS files. We point TREGEL to the correct location by supplying a path for each folder with the character vectors `queryFolder` and `subjectFolder`. In this vignette we are using lightweight query and subject example data sets to show TREGEL's functionality.
+
+```{r InitializeTREGEL, message=TRUE, echo=TRUE,warning=TRUE}
+TREGELtest <- TREGELDataSet(queryFolder="./query",subjectFolder="./subject")
+```
+By monitoring TREGEL's metadata information you can make sure the input paths you supplied are stored correctly.
+```{r checkMetadata, message=TRUE, echo=TRUE,warning=TRUE}
+S4Vectors::metadata(TREGELtest)
+```
+Query and subject datasets are read by `loadAnnotations()` and stored in the TREGELDataSet as `GRanges` objects.  In this example case we can have a look at the query "genes" (4 regions), subject "CGI" (4 CpG islands) and subject "TFBS" (11 Transcription factor binding sites). 
+```{r loadAnnotations, message=TRUE, echo=TRUE,warning=TRUE}
+TREGELtest <- loadAnnotations(TREGELtest)
+TREGELtest
+```
+TREGEL uses your dataset filenames to label query and subjects internally, we can check these names by using the `names()` function since every `TREGELDataSet` is a `GRangesList`. 
+```{r checkDatasetNames, message=TRUE, echo=TRUE,warning=TRUE}
+names(TREGELtest)
+```
+Next, we find overlaps between query and subject(s) datasets by using `fOverlaps()`. Any existing overlap is listed in `detailDT` and store as a `data.table`.
+```{r fOverlaps, message=TRUE, echo=TRUE,warning=TRUE}
+TREGELtest <- fOverlaps(TREGELtest)
+head(S4Vectors::metadata(TREGELtest)$detailDT)
+#saveRDS(TREGELtest,file="/mnt/idata/TREGEL/tool/TREGELtest.RDS")
+```
+
+
+The summary plot shows a useful information of the number of overlaps between your datasets. 
+```{r sumPlot, echo=TRUE, message=TRUE, warning=TRUE,fig.dim = c(30/2.54, 20/2.54)}
+ TREGELtest <- sumPlot(TREGELtest)
+ S4Vectors::metadata(TREGELtest)$barplot_summary
+```
+Using the `Gviz` visualization each query can be displayed with all overlapping subject elements. Choose labels for all region tracks by supplying a `trackRegionLabels` vector. Plots are stored in the same location as your dataset files.
+```{r gvizPlot, message=TRUE, echo=TRUE,warning=TRUE}
+ TREGELtest <- gvizPlot(TREGELtest,"ENSMUSG00000068196",trackRegionLabels = setNames(c("name","ID","name"),c("genes","CGI","TFBS")))
+```
+
+Additional functions will be explained below:
+
+* function 1
+
+
+

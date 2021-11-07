@@ -2,7 +2,7 @@
 #'
 #' Load dataset files containing genomic regions annotation information from hard drive. `loadAnnotations` calls `readQuery` and `readSubject`
 #' to read in genomic regions as `GenomicRanges` objects stored as .RDS / .rds files. Each region needs chromosome, start, end and strand information.
-#' Mcols must contain a unique ID and a name column. TREGEL searches for the query file in your query folder and any number of subject files in your subjects folder.
+#' A unique ID and a name column must be present in the `GenomicRanges` object metadata. TREGEL searches for the query file in your query folder and any number of subject files in your subjects folder.
 #' @param TREGELDataSet A TREGELDataSet.
 #' @return A TREGELDataSet.
 #' @export
@@ -17,7 +17,11 @@ loadAnnotations <- function(TREGELDataSet){
 
 
 
-#' Read query
+#' Read query dataset
+#'
+#'[readQuery()] scanns `queryFolder` for a `GRanges` object stored as .RDS / .rds file and attaches it to the TREGEL
+#' @param TREGELDataSet A TREGELDataSet.
+#' @return A TREGELDataSet.
 readQuery=function(TREGELDataSet){
   message("Reading query dataset... ")
   if(is.na(metadata(TREGELDataSet)$queryFolder)){ #if no folder supplied, check default folder

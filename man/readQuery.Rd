@@ -2,10 +2,16 @@
 % Please edit documentation in R/methods.R
 \name{readQuery}
 \alias{readQuery}
-\title{Read query}
+\title{Read query dataset}
 \usage{
 readQuery(TREGELDataSet)
 }
+\arguments{
+\item{TREGELDataSet}{A TREGELDataSet.}
+}
+\value{
+A TREGELDataSet.
+}
 \description{
-Read query
+\code{\link[=readQuery]{readQuery()}} scanns \code{queryFolder} for a \code{GRanges} object stored as .RDS / .rds file and attaches it to the TREGEL
 }
