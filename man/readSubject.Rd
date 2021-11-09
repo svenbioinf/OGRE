@@ -2,10 +2,16 @@
 % Please edit documentation in R/methods.R
 \name{readSubject}
 \alias{readSubject}
-\title{Read subjects}
+\title{Read subject datasets}
 \usage{
 readSubject(TREGELDataSet)
 }
+\arguments{
+\item{TREGELDataSet}{A TREGELDataSet.}
+}
+\value{
+A TREGELDataSet.
+}
 \description{
-Read subjects
+\code{\link[=readSubject]{readSubject()}} scanns \code{SubjectFolder} for a \code{GRanges} object stored as .RDS / .rds file and attaches it to the TREGELDataSet.
 }

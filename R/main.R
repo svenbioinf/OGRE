@@ -3,7 +3,7 @@
 #' @import GenomicRanges S4Vectors methods data.table ggplot2 Gviz IRanges
 #' @importFrom assertthat assert_that
 #' @export
-TREGELDataSet <- function(queryFolder,subjectFolder){
+TREGELDataSetFromDir <- function(queryFolder,subjectFolder){
   assertthat::assert_that(!is.null(queryFolder),msg="Please specify query folder!")
   assertthat::assert_that(!is.null(subjectFolder),msg="Please specify subject folder!")
   assertthat::assert_that(is(queryFolder,"character"),msg="queryFolder must be of type character!")

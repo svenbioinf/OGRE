@@ -19,10 +19,11 @@ loadAnnotations <- function(TREGELDataSet){
 
 #' Read query dataset
 #'
-#'[readQuery()] scanns `queryFolder` for a `GRanges` object stored as .RDS / .rds file and attaches it to the TREGEL
+#'[readQuery()] scanns `queryFolder` for a `GRanges` object stored as .RDS / .rds file and attaches it to the TREGELDataSet.
 #' @param TREGELDataSet A TREGELDataSet.
 #' @return A TREGELDataSet.
 readQuery=function(TREGELDataSet){
+  assertthat::assert_that(length(list.files(metadata(TREGELDataSet)$queryFolder))>0,msg="Query folder is empty!")
   message("Reading query dataset... ")
   if(is.na(metadata(TREGELDataSet)$queryFolder)){ #if no folder supplied, check default folder
     #query(obj) <- readRDS()
@@ -42,18 +43,15 @@ readQuery=function(TREGELDataSet){
 
   return(TREGELDataSet)
 }
-
-#' Read subjects
+#' Read subject datasets
+#'
+#'[readSubject()] scanns `SubjectFolder` for any `GRanges` objects stored as .RDS / .rds files and attaches them to the TREGELDataSet.
+#' @param TREGELDataSet A TREGELDataSet.
+#' @return A TREGELDataSet.
 readSubject=function(TREGELDataSet){
-  message("Reading subjet datasets... ")
-  if(is.na(metadata(TREGELDataSet)$subjectFolder)){ #if no folder supplied, check default folder
-
-    #query(obj) <- readRDS()
-    #colnames(mcols(query(obj)))=c("name","id")
-    #query(obj)<- makeGRangesFromDataFrame(query(obj),keep.extra.columns = TRUE)
-    #obj <- readQuery(obj)
-
-  }else{ #read queryFolder
+  assertthat::assert_that(length(list.files(metadata(TREGELDataSet)$subjectFolder))>0,msg="Subject folder is empty!")
+  message("Reading subject datasets... ")
+  #read queryFolder
     subjectPath <- list.files(metadata(TREGELDataSet)$subjectFolder,full.names = TRUE)
     subjectName <- tools::file_path_sans_ext(list.files(metadata(TREGELDataSet)$subjectFolder))
     TREGELDataSet <- c(TREGELDataSet,mapply(function(x,y){
@@ -62,7 +60,7 @@ readSubject=function(TREGELDataSet){
       assertthat::assert_that(!any(duplicated(tmp$ID)),msg="ID column must be unique.")
       tmp
     },x=subjectName,y=subjectPath))
-  }
+
   return(TREGELDataSet)
 
 }
@@ -71,7 +69,9 @@ readSubject=function(TREGELDataSet){
 
 
 
-#' Find overlaps for query and subject
+#' Finds all overlaps between query and subject(s) and stores each hit (overlap) in data table `detailDT`. `sumDT` shows all
+#' overlaps of a certain subject type for all query elements.
+#'
 #' @param TREGELDataSet A TREGELDataSet.
 #' @return TREGELDataSet.
 #' @export
@@ -101,7 +101,8 @@ fOverlaps <- function(TREGELDataSet){
   return(TREGELDataSet)
 }
 
-#' Summary barplot
+#' `sumPlot()` calculates key numbers i.e. [total number of overlaps, number of overlaps per subject...] to help with an
+#' exploratory data evaluation and displays them in an informative barplot.
 #' @param TREGELDataSet A TREGELDataSet.
 #' @return TREGELDataSet.
 #' @export
@@ -140,11 +141,18 @@ sumPlot <- function(TREGELDataSet){
     return(TREGELDataSet)
 }
 
-#'Gviz plotting
+#'`gvizPlot` generates a plot around one or many given query elements with all overlapping subject hits. In addition,
+#'each generated plot is stored in the `gvizPlots` folder next to you
+#'
 #' @param TREGELDataSet A TREGELDataSet.
+#' @param query A character vector of one or many query elements ID's (i.e. Gene ID's).
+#' @param gvizPlotsFolder A character pointing to the plot(s) output directory. If not supplied a folder is
+#' generated next to the dataset folder.
 #' @return TREGELDataSet.
 #' @export
-gvizPlot <- function(TREGELDataSet,query,trackRegionLabels=setNames(rep("ID",length(TREGELDataSet)),names(TREGELDataSet))){
+gvizPlot <- function(TREGELDataSet,query,
+                     gvizPlotsFolder=metadata(TREGELDataSet)$gvizPlotsFolder,
+                     trackRegionLabels=setNames(rep("ID",length(TREGELDataSet)),names(TREGELDataSet))){
   for(q in query){
     #Subject tracks
     GvizSubjTracks=lapply(metadata(TREGELDataSet)$subjectNames,function(x){
@@ -173,7 +181,7 @@ gvizPlot <- function(TREGELDataSet,query,trackRegionLabels=setNames(rep("ID",len
                                id=regionLabels,fontsize.group=20,fontsize.title=24,fontcolor.title="black")#,stacking = "dense"
     allTracks=c(itrack,gtrack,queryTrack,GvizSubjTracks)#;names(temp)=make.unique(names(temp))
      #Gviz plotting
-    pdf(file.path(metadata(TREGELDataSet)$gvizPlotsFolder,paste0(q,".pdf")),width = 30/2.54,height = 20/2.54)
+    pdf(file.path(gvizPlotsFolder,paste0(q,".pdf")),width = 30/2.54,height = 20/2.54)
     plotTracks(allTracks,showOverplotting=TRUE,from = from, to = to,title.width=6,rotation.title=0,background.title="white",just.group="above") #20%BP up/down
     dev.off()
   return(TREGELDataSet)
