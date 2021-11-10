@@ -13,5 +13,5 @@ readSubject(TREGELDataSet)
 A TREGELDataSet.
 }
 \description{
-\code{\link[=readSubject]{readSubject()}} scanns \code{SubjectFolder} for a \code{GRanges} object stored as .RDS / .rds file and attaches it to the TREGELDataSet.
+\code{\link[=readSubject]{readSubject()}} scanns \code{SubjectFolder} for any \code{GRanges} objects stored as .RDS / .rds files and attaches them to the TREGELDataSet.
 }

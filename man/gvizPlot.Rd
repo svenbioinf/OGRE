@@ -2,20 +2,35 @@
 % Please edit documentation in R/methods.R
 \name{gvizPlot}
 \alias{gvizPlot}
-\title{Gviz plotting}
+\title{Generate Gviz plot}
 \usage{
 gvizPlot(
   TREGELDataSet,
   query,
-  trackRegionLabels = setNames(rep("ID", length(TREGELDataSet)), names(TREGELDataSet))
+  gvizPlotsFolder = metadata(TREGELDataSet)$gvizPlotsFolder,
+  trackRegionLabels = setNames(rep("ID", length(TREGELDataSet)), names(TREGELDataSet)),
+  showPlot = FALSE
 )
 }
 \arguments{
 \item{TREGELDataSet}{A TREGELDataSet.}
+
+\item{query}{A character vector of one or many query elements ID's (i.e. Gene ID's).}
+
+\item{gvizPlotsFolder}{A character pointing to the plot(s) output directory. If not supplied a folder is
+generated next to the dataset folder.}
+
+\item{trackRegionLabels}{A labeled character vector that defines the type of label that is displayed for subject elements.
+Values represent subject types and and vector labels define the type of label of each subject element. Value "ID" and label "genes" would
+use the "ID" column of your gene dataset as labels.}
+
+\item{showPlot}{\code{logical} If \code{FALSE}(default) plots are only saved to \code{gvizPlotsFolder}. If \code{TRUE}
+plots are additionally send to the plotting window.}
 }
 \value{
 TREGELDataSet.
 }
 \description{
-Gviz plotting
+\code{gvizPlot} generates a plot around one or many given query elements with all overlapping subject hits. In addition,
+each generated plot is stored in the \code{gvizPlots} folder next to you
 }

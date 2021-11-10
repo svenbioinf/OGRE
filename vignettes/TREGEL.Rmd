@@ -53,7 +53,7 @@ library(TREGEL)
 ```
 ## Quick start
 
-To start up TREGEL you have to generate a `TREGELDataSet` that is used to store your data sets and additional information about the analysis that you are conducting. Query and subjects files can be conveniently stored in their own folders as GRanges objects if form of stored .rds / .RDS files. We point TREGEL to the correct location by supplying a path for each folder with the character vectors `queryFolder` and `subjectFolder`. In this vignette we are using lightweight query and subject example data sets to show TREGEL's functionality.
+To start up TREGEL you have to generate a `TREGELDataSet` that is used to store your data sets and additional information about the analysis that you are conducting. Query and subjects files can be conveniently stored in their own folders as GRanges objects in form of stored .rds / .RDS files. We point TREGEL to the correct location by supplying a path for each folder with the character vectors `queryFolder` and `subjectFolder`. In this vignette we are using lightweight query and subject example data sets to show TREGEL's functionality.
 
 ```{r InitializeTREGEL, message=TRUE, echo=TRUE,warning=FALSE}
 myQueryFolder <- file.path(system.file('extdata', package = 'TREGEL'),"query")
@@ -65,7 +65,7 @@ By monitoring TREGEL's metadata information you can make sure the input paths yo
 ```{r checkMetadata, message=TRUE, echo=TRUE,warning=TRUE}
 S4Vectors::metadata(myTREGEL)
 ```
-Query and subject datasets are read by `loadAnnotations()` and stored in the TREGELDataSet as `GRanges` objects.  In this example case we can have a look at the query "genes" (4 regions), subject "CGI" (4 CpG islands) and subject "TFBS" (11 Transcription factor binding sites). 
+Query and subject datasets are read by `loadAnnotations()` and stored in the `TREGELDataSet` as `GRanges` objects.  In this example case we can have a look at the query "genes" (4 regions), subject "CGI" (3 CpG islands) and subject "TFBS" (7 Transcription factor binding sites). 
 ```{r loadAnnotations, message=TRUE, echo=TRUE,warning=TRUE}
 myTREGEL <- loadAnnotations(myTREGEL)
 myTREGEL
@@ -74,11 +74,10 @@ TREGEL uses your dataset filenames to label query and subjects internally, we ca
 ```{r checkDatasetNames, message=TRUE, echo=TRUE,warning=TRUE}
 names(myTREGEL)
 ```
-Next, we find overlaps between query and subject(s) datasets by using `fOverlaps()`. Any existing overlap is listed in `detailDT` and store as a `data.table`.
+Next, we find overlaps between query and subject(s) datasets by using `fOverlaps()`. Any existing overlap is listed in `detailDT` and stored as a `data.table`.
 ```{r fOverlaps, message=TRUE, echo=TRUE,warning=TRUE}
 myTREGEL <- fOverlaps(myTREGEL)
 head(S4Vectors::metadata(myTREGEL)$detailDT)
-#saveRDS(myTREGEL,file="/mnt/idata/TREGEL/tool/myTREGEL.RDS")
 ```
 
 
@@ -89,12 +88,10 @@ The summary plot shows a useful information of the number of overlaps between yo
 ```
 Using the `Gviz` visualization each query can be displayed with all overlapping subject elements. Choose labels for all region tracks by supplying a `trackRegionLabels` vector. Plots are stored in the same location as your dataset files.
 ```{r gvizPlot, message=TRUE, echo=TRUE,warning=TRUE}
- myTREGEL <- gvizPlot(myTREGEL,"ENSMUSG00000068196",trackRegionLabels = setNames(c("name","ID","name"),c("genes","CGI","TFBS")))
+ myTREGEL <- gvizPlot(myTREGEL,"ENSMUSG00000068196",showPlot = TRUE,trackRegionLabels = setNames(c("name","ID","name"),c("genes","CGI","TFBS")))
 ```
 
-Additional functions will be explained below:
 
-* function 1
 
 
 

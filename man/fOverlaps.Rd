@@ -2,7 +2,7 @@
 % Please edit documentation in R/methods.R
 \name{fOverlaps}
 \alias{fOverlaps}
-\title{Finds all overlaps between query and subject(s) and stores hits in two separate files ''}
+\title{Find overlaps}
 \usage{
 fOverlaps(TREGELDataSet)
 }
@@ -13,5 +13,6 @@ fOverlaps(TREGELDataSet)
 TREGELDataSet.
 }
 \description{
-Finds all overlaps between query and subject(s) and stores hits in two separate files ''
+Finds all overlaps between query and subject(s) and stores each hit (overlap) in data table \code{detailDT}. Data table \code{sumDT} shows all
+overlaps of a certain subject type for all query elements. By default also partially overlaps are reported.
 }

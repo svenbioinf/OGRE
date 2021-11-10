@@ -2,10 +2,16 @@
 % Please edit documentation in R/main.R
 \name{TREGELDataSetFromDir}
 \alias{TREGELDataSetFromDir}
-\title{BuildTREGELDataSet}
+\title{BuildTREGELDataSetFromDir}
 \usage{
 TREGELDataSetFromDir(queryFolder, subjectFolder)
 }
+\arguments{
+\item{queryFolder}{A \code{character} path pointing to the directory where your query dataset is located.}
+
+\item{subjectFolder}{A \code{character} path pointing to the directory where your subject dataset(s) are located.}
+}
 \description{
-BuildTREGELDataSet
+Builds a \code{TREGELDataset} from user specified directories containing datasets for which an overlap between query and subject is to be calculated.
+A \code{TREGELDataset} is a \code{GenomicRangesList} with stores datasets in a list like structure and possible metadata information.
 }

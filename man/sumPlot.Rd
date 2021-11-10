@@ -2,7 +2,7 @@
 % Please edit documentation in R/methods.R
 \name{sumPlot}
 \alias{sumPlot}
-\title{Summary barplot}
+\title{Generate summary plot}
 \usage{
 sumPlot(TREGELDataSet)
 }
@@ -13,5 +13,6 @@ sumPlot(TREGELDataSet)
 TREGELDataSet.
 }
 \description{
-Summary barplot
+\code{sumPlot()} calculates key numbers i.e. \link{total number of overlaps, number of overlaps per subject...} to help with an
+exploratory data evaluation and displays them in an informative barplot.
 }
