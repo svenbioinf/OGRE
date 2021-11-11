@@ -25,7 +25,7 @@ loadAnnotations <- function(TREGELDataSet){
 readQuery=function(TREGELDataSet){
   assertthat::assert_that(length(list.files(metadata(TREGELDataSet)$queryFolder))>0,msg="Query folder is empty!")
   message("Reading query dataset... ")
-  if(is.na(metadata(TREGELDataSet)$queryFolder)){ #if no folder supplied, check default folder
+  if(is.null(metadata(TREGELDataSet)$queryFolder)){ #if no folder supplied, check default folder
 
   }else{ #read queryFolder
     queryPath <- list.files(metadata(TREGELDataSet)$queryFolder,full.names = TRUE)

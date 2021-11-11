@@ -1,15 +1,18 @@
 Package: TREGEL
-Title: What the Package Does (One Line, Title Case)
+Type: Package
+Title: Calculate, visualize and analyse overlap between genetic regions.
 Version: 0.0.1.0001
-Authors@R: 
-    person(given = "First",
-           family = "Last",
-           role = c("aut", "cre"),
-           email = "first.last@example.com",
-           comment = c(ORCID = "YOUR-ORCID-ID"))
-Description: What the package does (one paragraph).
-License: `use_mit_license()`, `use_gpl3_license()` or friends to pick a
-    license
+Authors@R:c(
+    person("Sven", "Berres", email="sven.berres@ukmuenster.de", role = c("aut","cre")),
+    person("Jörg", "Gromoll", role = c("ctb")),
+    person("Marius", "Wöste", role = c("ctb")),
+    person("Sarah", "Sandmann", role = c("aut","ctb")),
+    person("Sandra", "Laurentino", role = c("aut","ctb")),)
+Maintainer: Sven Berres <sven.berres@ukmuenster.de>
+Description: TREGEL calculates overlap between user defined genetic region datasets. Any regions can be
+supplied i.e. genes, SNPs, or reads from sequencing experiments. Key numbers help analyse the extend of overlaps which
+can also be visualized at a genomic level.
+License: Artistic-2.0
 Encoding: UTF-8
 LazyData: true
 Roxygen: list(markdown = TRUE)

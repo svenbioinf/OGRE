@@ -3,11 +3,10 @@ title: "The TREGEL user guide"
 author: "Sven Berres"
 date: "`r format(Sys.Date(), '%m/%d/%Y')`"
 abstract: >
-  Abstract here
+  TREGEL calculates overlap between user defined genetic region datasets. Any regions can be supplied i.e. genes, SNPs, or reads from sequencing experiments. Key numbers help analyse the extend of overlaps which can also be visualized at a genomic level. TREGEL package version: `r packageVersion("TREGEL")`
 
-  TREGEL package version: `r packageVersion("TREGEL")`
+  
 output:
-#  rmarkdown::html_document:
     rmarkdown::html_document:
     highlight: pygments
     toc: true
@@ -35,13 +34,13 @@ if(dir.exists("../inst/extdata")){
 
 ## Introduction
 
-**Note:** if you use TREGEL3 in published research, please cite:
+**Note:** if you use TREGEL in published research, please cite:
 
 #> "Sven Berres" (2021)
-#> *some journal*, **Jnumber**:pageNr.
-#> [insertdoi](http://linkmissing)
+#> *journalX*, **Jnumber**:pageNr.
+#> [doiX](http://linkX)
 Other Bioconductor packages with similar aims are
-[testPackage](http://testlink/testlink).
+[PackageX](http://linkX/linkX).
 
 ## Setup
 
@@ -65,12 +64,17 @@ By monitoring TREGEL's metadata information you can make sure the input paths yo
 ```{r checkMetadata, message=TRUE, echo=TRUE,warning=TRUE}
 S4Vectors::metadata(myTREGEL)
 ```
-Query and subject datasets are read by `loadAnnotations()` and stored in the `TREGELDataSet` as `GRanges` objects.  In this example case we can have a look at the query "genes" (4 regions), subject "CGI" (3 CpG islands) and subject "TFBS" (7 Transcription factor binding sites). 
+Query and subject datasets are read by `loadAnnotations()` and stored in the `TREGELDataSet` as `GRanges` objects.
+We are going to read in the following example datasets:
+
+* query "genes" (4 regions) 
+* subject "CGI" (3 CpG islands)
+* subject "TFBS" (7 Transcription factor binding sites) 
 ```{r loadAnnotations, message=TRUE, echo=TRUE,warning=TRUE}
 myTREGEL <- loadAnnotations(myTREGEL)
 myTREGEL
 ```
-TREGEL uses your dataset filenames to label query and subjects internally, we can check these names by using the `names()` function since every `TREGELDataSet` is a `GRangesList`. 
+TREGEL uses your dataset file names to label query and subjects internally, we can check these names by using the `names()` function since every `TREGELDataSet` is a `GRangesList`. 
 ```{r checkDatasetNames, message=TRUE, echo=TRUE,warning=TRUE}
 names(myTREGEL)
 ```

@@ -22,11 +22,11 @@ TREGELDataSetFromDir <- function(queryFolder,subjectFolder){
   metadata(TREGELDataSet)$outputFolder <- file.path(dirname(metadata(TREGELDataSet)$queryFolder), "output") #move up one level
                                           dir.create(file.path(dirname(metadata(TREGELDataSet)$outputFolder), "gvizPlots")) #move up one level
   metadata(TREGELDataSet)$gvizPlotsFolder <- file.path(dirname(metadata(TREGELDataSet)$outputFolder), "gvizPlots") #move up one level
-  metadata(TREGELDataSet)$subjectNames <- NA
-  metadata(TREGELDataSet)$detailDT <- NA
-  metadata(TREGELDataSet)$sumDT <- NA
-  metadata(TREGELDataSet)$barplot_summary <- NA
-  metadata(TREGELDataSet)$barplot_summary_dt <- NA
+  metadata(TREGELDataSet)$subjectNames <- NULL
+  metadata(TREGELDataSet)$detailDT <- NULL
+  metadata(TREGELDataSet)$sumDT <- NULL
+  metadata(TREGELDataSet)$barplot_summary <- NULL
+  metadata(TREGELDataSet)$barplot_summary_dt <- NULL
   metadata(TREGELDataSet)$itracks <- list()
 
 
