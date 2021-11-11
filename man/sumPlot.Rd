@@ -13,6 +13,6 @@ sumPlot(TREGELDataSet)
 TREGELDataSet.
 }
 \description{
-\code{sumPlot()} calculates key numbers i.e. \link{total number of overlaps, number of overlaps per subject...} to help with an
+\code{sumPlot()} calculates key numbers i.e. (total number of overlaps, number of overlaps per subject...) to help with an
 exploratory data evaluation and displays them in an informative barplot.
 }

@@ -108,7 +108,7 @@ fOverlaps <- function(TREGELDataSet){
 
 #' Generate summary plot
 #'
-#' `sumPlot()` calculates key numbers i.e. [total number of overlaps, number of overlaps per subject...] to help with an
+#' `sumPlot()` calculates key numbers i.e. (total number of overlaps, number of overlaps per subject...) to help with an
 #' exploratory data evaluation and displays them in an informative barplot.
 #' @param TREGELDataSet A TREGELDataSet.
 #' @return TREGELDataSet.
