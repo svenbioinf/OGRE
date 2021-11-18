@@ -4,13 +4,13 @@
 \alias{sumPlot}
 \title{Generate summary plot}
 \usage{
-sumPlot(TREGELDataSet)
+sumPlot(OGREDataSet)
 }
 \arguments{
-\item{TREGELDataSet}{A TREGELDataSet.}
+\item{OGREDataSet}{A OGREDataSet.}
 }
 \value{
-TREGELDataSet.
+OGREDataSet.
 }
 \description{
 \code{sumPlot()} calculates key numbers i.e. (total number of overlaps, number of overlaps per subject...) to help with an

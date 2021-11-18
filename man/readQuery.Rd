@@ -4,14 +4,14 @@
 \alias{readQuery}
 \title{Read query dataset}
 \usage{
-readQuery(TREGELDataSet)
+readQuery(OGREDataSet)
 }
 \arguments{
-\item{TREGELDataSet}{A TREGELDataSet.}
+\item{OGREDataSet}{A OGREDataSet.}
 }
 \value{
-A TREGELDataSet.
+A OGREDataSet.
 }
 \description{
-\code{\link[=readQuery]{readQuery()}} scanns \code{queryFolder} for a \code{GRanges} object stored as .RDS / .rds file and attaches it to the TREGELDataSet.
+\code{\link[=readQuery]{readQuery()}} scanns \code{queryFolder} for a \code{GRanges} object stored as .RDS / .rds file and attaches it to the OGREDataSet.
 }

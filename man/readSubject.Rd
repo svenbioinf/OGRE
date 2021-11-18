@@ -4,14 +4,14 @@
 \alias{readSubject}
 \title{Read subject datasets}
 \usage{
-readSubject(TREGELDataSet)
+readSubject(OGREDataSet)
 }
 \arguments{
-\item{TREGELDataSet}{A TREGELDataSet.}
+\item{OGREDataSet}{A OGREDataSet.}
 }
 \value{
-A TREGELDataSet.
+A OGREDataSet.
 }
 \description{
-\code{\link[=readSubject]{readSubject()}} scanns \code{SubjectFolder} for any \code{GRanges} objects stored as .RDS / .rds files and attaches them to the TREGELDataSet.
+\code{\link[=readSubject]{readSubject()}} scanns \code{SubjectFolder} for any \code{GRanges} objects stored as .RDS / .rds files and attaches them to the OGREDataSet.
 }

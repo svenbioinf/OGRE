@@ -4,16 +4,16 @@
 \alias{loadAnnotations}
 \title{Load annotation datasets}
 \usage{
-loadAnnotations(TREGELDataSet)
+loadAnnotations(OGREDataSet)
 }
 \arguments{
-\item{TREGELDataSet}{A TREGELDataSet.}
+\item{OGREDataSet}{A OGREDataSet.}
 }
 \value{
-A TREGELDataSet.
+A OGREDataSet.
 }
 \description{
 Load dataset files containing genomic regions annotation information from hard drive. \code{loadAnnotations} calls \code{readQuery} and \code{readSubject}
 to read in genomic regions as \code{GenomicRanges} objects stored as .RDS / .rds files. Each region needs chromosome, start, end and strand information.
-A unique ID and a name column must be present in the \code{GenomicRanges} object metadata. TREGEL searches for the query file in your query folder and any number of subject files in your subjects folder.
+A unique ID and a name column must be present in the \code{GenomicRanges} object metadata. OGRE searches for the query file in your query folder and any number of subject files in your subjects folder.
 }

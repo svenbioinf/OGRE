@@ -4,13 +4,13 @@
 \alias{fOverlaps}
 \title{Find overlaps}
 \usage{
-fOverlaps(TREGELDataSet)
+fOverlaps(OGREDataSet)
 }
 \arguments{
-\item{TREGELDataSet}{A TREGELDataSet.}
+\item{OGREDataSet}{A OGREDataSet.}
 }
 \value{
-TREGELDataSet.
+OGREDataSet.
 }
 \description{
 Finds all overlaps between query and subject(s) and stores each hit (overlap) in data table \code{detailDT}. Data table \code{sumDT} shows all

@@ -5,15 +5,15 @@
 \title{Generate Gviz plot}
 \usage{
 gvizPlot(
-  TREGELDataSet,
+  OGREDataSet,
   query,
-  gvizPlotsFolder = metadata(TREGELDataSet)$gvizPlotsFolder,
-  trackRegionLabels = setNames(rep("ID", length(TREGELDataSet)), names(TREGELDataSet)),
+  gvizPlotsFolder = metadata(OGREDataSet)$gvizPlotsFolder,
+  trackRegionLabels = setNames(rep("ID", length(OGREDataSet)), names(OGREDataSet)),
   showPlot = FALSE
 )
 }
 \arguments{
-\item{TREGELDataSet}{A TREGELDataSet.}
+\item{OGREDataSet}{A OGREDataSet.}
 
 \item{query}{A character vector of one or many query elements ID's (i.e. Gene ID's).}
 
@@ -28,7 +28,7 @@ use the "ID" column of your gene dataset as labels.}
 plots are additionally send to the plotting window.}
 }
 \value{
-TREGELDataSet.
+OGREDataSet.
 }
 \description{
 \code{gvizPlot} generates a plot around one or many given query elements with all overlapping subject hits. In addition,
