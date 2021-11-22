@@ -2,7 +2,7 @@
 <img src="vignettes/logo.png" align="center" class="center" alt="" width="250"/> 
 </p> <br>
 <p align="center">
-*OGRE* - *O*verlapping annotated *G*enomic *RE*gions <br>
+<b>OGRE</b> - <b>O</b>verlapping annotated <b>G</b>enomic <b>RE</b>gions <br>
 Calculate, visualize and analyse overlap between genomic regions
 </p>
 
