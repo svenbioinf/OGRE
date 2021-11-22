@@ -8,7 +8,6 @@ Authors@R:c(
     person("Marius", "Wöste", role = c("ctb")),
     person("Sarah", "Sandmann", role = c("ctb")),
     person("Sandra", "Laurentino", role = c("ctb")))
-Maintainer: Sven Berres <sven.berres@ukmuenster.de>
 Description: OGRE calculates overlap between user defined genomic region datasets. 
     Any regions can be supplied i.e. genes, SNPs, or reads from sequencing experiments. 
     Key numbers help analyse the extend of overlaps which can also be visualized at a genomic level.
