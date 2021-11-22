@@ -11,7 +11,15 @@ OGREDataSetFromDir(queryFolder, subjectFolder)
 
 \item{subjectFolder}{A \code{character} path pointing to the directory where your subject dataset(s) are located.}
 }
+\value{
+A OGREDataSet.
+}
 \description{
 Builds a \code{OGREDataset} from user specified directories containing datasets for which an overlap between query and subject is to be calculated.
 A \code{OGREDataset} is a \code{GenomicRangesList} with stores datasets in a list like structure and possible metadata information.
+}
+\examples{
+myQueryFolder <- file.path(system.file('extdata', package = 'OGRE'),"query")
+mySubjectFolder <- file.path(system.file('extdata', package = 'OGRE'),"subject")
+myOGRE <- OGREDataSetFromDir(queryFolder=myQueryFolder,subjectFolder=mySubjectFolder)
 }

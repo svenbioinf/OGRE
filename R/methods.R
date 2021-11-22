@@ -5,6 +5,9 @@
 #' A unique ID and a name column must be present in the `GenomicRanges` object metadata. OGRE searches for the query file in your query folder and any number of subject files in your subjects folder.
 #' @param OGREDataSet A OGREDataSet.
 #' @return A OGREDataSet.
+#' @examples
+#' myOGRE=makeExampleOGREDataSet()
+#' myOGRE=loadAnnotations(myOGRE)
 #' @export
 
 loadAnnotations <- function(OGREDataSet){
@@ -77,6 +80,10 @@ readSubject=function(OGREDataSet){
 #'
 #' @param OGREDataSet A OGREDataSet.
 #' @return OGREDataSet.
+#' @examples
+#' myOGRE=makeExampleOGREDataSet()
+#' myOGRE=loadAnnotations(myOGRE)
+#' myOGRE=fOverlaps(myOGRE)
 #' @export
 fOverlaps <- function(OGREDataSet){
   detailDT <- data.table() #data table to store all overlaps for query vs all subjects
@@ -120,6 +127,11 @@ fOverlaps <- function(OGREDataSet){
 #' exploratory data evaluation and displays them in an informative barplot.
 #' @param OGREDataSet A OGREDataSet.
 #' @return OGREDataSet.
+#' @examples
+#' myOGRE=makeExampleOGREDataSet()
+#' myOGRE=loadAnnotations(myOGRE)
+#' myOGRE=fOverlaps(myOGRE)
+#' myOGRE=sumPlot(myOGRE)
 #' @export
 sumPlot <- function(OGREDataSet){
   assert_that(!is.null(metadata(OGREDataSet)$sumDT),
@@ -192,6 +204,11 @@ sumPlot <- function(OGREDataSet){
 #' Values represent subject types and and vector labels define the type of label of each subject element. Value "ID" and label "genes" would
 #' use the "ID" column of your gene dataset as labels.
 #' @return OGREDataSet.
+#' @examples
+#' myOGRE=makeExampleOGREDataSet()
+#' myOGRE=loadAnnotations(myOGRE)
+#' myOGRE=fOverlaps(myOGRE)
+#' myOGRE=gvizPlot(myOGRE)
 #' @export
 gvizPlot <- function(OGREDataSet,query,
  gvizPlotsFolder = metadata(OGREDataSet)$gvizPlotsFolder,
@@ -243,4 +260,20 @@ gvizPlot <- function(OGREDataSet,query,
 
 }
 
+#' Make a example OGRE dataset
+#'
+#' `makeExampleOGREDataSet` generates a example OGREDataSet from dataset files
+#' stored in OGRE's extdata directory.
+#'
+#' @return OGREDataSet.
+#' @examples
+#' myOGRE=makeExampleOGREDataSet()
+#' @export
+makeExampleOGREDataSet <- function()
+{
+  myQueryFolder <- file.path(system.file('extdata', package = 'OGRE'),"query")
+  mySubjectFolder <- file.path(system.file('extdata', package = 'OGRE'),"subject")
+  myOGRE <- OGREDataSetFromDir(queryFolder=myQueryFolder,subjectFolder=mySubjectFolder)
+  return(myOGRE)
+}
 

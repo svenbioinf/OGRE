@@ -1,7 +1,7 @@
 Package: OGRE
 Type: Package
 Title: Calculate, visualize and analyse overlap between genetic regions
-Version: 0.99.0.0001
+Version: 0.99.0
 Authors@R:c(
     person("Sven", "Berres", email="sven.berres@ukmuenster.de", role = c("aut","cre")),
     person("Jörg", "Gromoll", role = c("ctb")),
@@ -9,7 +9,9 @@ Authors@R:c(
     person("Sarah", "Sandmann", role = c("ctb")),
     person("Sandra", "Laurentino", role = c("ctb")))
 Maintainer: Sven Berres <sven.berres@ukmuenster.de>
-Description: OGRE calculates overlap between user defined genetic region datasets. Any regions can be supplied i.e. genes, SNPs, or reads from sequencing experiments. Key numbers help analyse the extend of overlaps which can also be visualized at a genomic level.
+Description: OGRE calculates overlap between user defined genetic region datasets. 
+    Any regions can be supplied i.e. genes, SNPs, or reads from sequencing experiments. 
+    Key numbers help analyse the extend of overlaps which can also be visualized at a genomic level.
 License: Artistic-2.0
 Encoding: UTF-8
 LazyData: true
@@ -17,5 +19,7 @@ Roxygen: list(markdown = TRUE)
 VignetteBuilder: knitr
 RoxygenNote: 7.1.1
 Imports: GenomicRanges, methods, data.table, assertthat, ggplot2, Gviz, IRanges
-Depends: R (>= 3.5.0), S4Vectors
+Depends: R (>= 4.0), S4Vectors
 Suggests: knitr, rmarkdown
+biocViews: Software, WorkflowStep, BiologicalQuestion, Annotation, Metagenomics,
+    Visualization

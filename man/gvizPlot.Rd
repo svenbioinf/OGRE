@@ -34,3 +34,9 @@ OGREDataSet.
 \code{gvizPlot} generates a plot around one or many given query elements with all overlapping subject hits. In addition,
 each generated plot is stored in the \code{gvizPlots} folder next to you
 }
+\examples{
+myOGRE=makeExampleOGREDataSet()
+myOGRE=loadAnnotations(myOGRE)
+myOGRE=fOverlaps(myOGRE)
+myOGRE=gvizPlot(myOGRE)
+}

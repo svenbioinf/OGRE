@@ -16,3 +16,9 @@ OGREDataSet.
 \code{sumPlot()} calculates key numbers i.e. (total number of overlaps, number of overlaps per subject...) to help with an
 exploratory data evaluation and displays them in an informative barplot.
 }
+\examples{
+myOGRE=makeExampleOGREDataSet()
+myOGRE=loadAnnotations(myOGRE)
+myOGRE=fOverlaps(myOGRE)
+myOGRE=sumPlot(myOGRE)
+}

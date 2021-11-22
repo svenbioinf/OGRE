@@ -7,6 +7,12 @@
 #' @import GenomicRanges methods ggplot2 Gviz S4Vectors
 #' @importFrom assertthat assert_that
 #' @importFrom data.table data.table
+#' @return A OGREDataSet.
+#' @examples
+#' myQueryFolder <- file.path(system.file('extdata', package = 'OGRE'),"query")
+#' mySubjectFolder <- file.path(system.file('extdata', package = 'OGRE'),"subject")
+#' myOGRE <- OGREDataSetFromDir(queryFolder=myQueryFolder,subjectFolder=mySubjectFolder)
+
 #' @export
 OGREDataSetFromDir <- function(queryFolder,subjectFolder){
   assertthat::assert_that(!is.null(queryFolder),msg="Please specify query folder!")
