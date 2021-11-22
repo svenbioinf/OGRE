@@ -38,5 +38,5 @@ each generated plot is stored in the \code{gvizPlots} folder next to you
 myOGRE=makeExampleOGREDataSet()
 myOGRE=loadAnnotations(myOGRE)
 myOGRE=fOverlaps(myOGRE)
-myOGRE=gvizPlot(myOGRE)
+myOGRE=gvizPlot(myOGRE,query="ENSMUSG00000068196")
 }

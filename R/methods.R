@@ -208,7 +208,7 @@ sumPlot <- function(OGREDataSet){
 #' myOGRE=makeExampleOGREDataSet()
 #' myOGRE=loadAnnotations(myOGRE)
 #' myOGRE=fOverlaps(myOGRE)
-#' myOGRE=gvizPlot(myOGRE)
+#' myOGRE=gvizPlot(myOGRE,query="ENSMUSG00000068196")
 #' @export
 gvizPlot <- function(OGREDataSet,query,
  gvizPlotsFolder = metadata(OGREDataSet)$gvizPlotsFolder,
