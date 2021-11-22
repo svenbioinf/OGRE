@@ -1,7 +1,10 @@
-<img src="vignettes/logo.png" align="center" alt="" width="250"/> <br>
+<p align="center">
+<img src="vignettes/logo.png" align="center" class="center" alt="" width="250"/> 
+</p> <br>
+<p align="center">
 *OGRE* - *O*verlapping annotated *G*enomic *RE*gions <br>
 Calculate, visualize and analyse overlap between genomic regions
-
+</p>
 
 
 The OGRE package calculates overlap between user defined genomic region datasets. 
