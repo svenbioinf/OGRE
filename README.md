@@ -1,4 +1,4 @@
-# OGRE <img src="vignettes/logo.png" align="right" alt="" width="250"/>
+<img src="vignettes/logo.png" align="center" alt="" width="250"/> <br>
 *OGRE* - *O*verlapping annotated *G*enomic *RE*gions <br>
 Calculate, visualize and analyse overlap between genomic regions
 
