@@ -1,9 +1,9 @@
 Package: OGRE
 Type: Package
 Title: Calculate, visualize and analyse overlap between genomic regions
-Version: 0.99.0
+Version: 0.99.1
 Authors@R:c(
-    person("Sven", "Berres", email="sven.berres@ukmuenster.de", role = c("aut","cre")),
+    person("Sven", "Berres", email="svenbioinf@gmail.com", role = c("aut","cre")),
     person("Jörg", "Gromoll", role = c("ctb")),
     person("Marius", "Wöste", role = c("ctb")),
     person("Sarah", "Sandmann", role = c("ctb")),
