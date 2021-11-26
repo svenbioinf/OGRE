@@ -3,8 +3,7 @@ title: "The OGRE user guide"
 author: "Sven Berres"
 date: "`r format(Sys.Date(), '%m/%d/%Y')`"
 abstract: >
-
-  <center>OGRE calculates overlap between user defined genetic region datasets. Any regions can be supplied such as public annotations (genes), genetic variation (SNPs, mutations), regulatory elements (TFBS, promoters, CpG islands) and basically all  types of NGS output from sequencing experiments. After overlap calculation, key numbers help analyse the extend of overlaps which can also be visualized at a genomic level. OGRE package version: `r packageVersion("OGRE")`</center><br />
+    OGRE calculates overlap between user defined annotated genomic region datasets. Any regions can be supplied such as public annotations (genes), genetic variation (SNPs, mutations), regulatory elements (TFBS, promoters, CpG islands) and basically all  types of NGS output from sequencing experiments. After overlap calculation, key numbers help analyse the extend of overlaps which can also be visualized at a genomic level. OGRE package version: `r packageVersion("OGRE")`
 
 
 output:
@@ -14,7 +13,7 @@ output:
     fig_width: 5
 
 vignette: >
-  %\VignetteIndexEntry{OGRE3}
+  %\VignetteIndexEntry{OGRE}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
   %\usepackage[utf8]{inputenc}
@@ -80,11 +79,11 @@ myOGRE
 ```
 To find overlaps between your query and subject datasets we call `fOverlaps()`.
 Internally OGRE makes use of the `GenomicRanges` package to calculate full and partial overlap as schematically shown.
-<center></center><br />
+<br />
 ```{r echo=FALSE, out.width='70%',fig.align='center'}
 knitr::include_graphics(file.path(vigDir,'overlap.png'))
 ```
-<center></center><br />
+<br />
 Any existing subject - query hits are then listed in `detailDT` and stored as a `data.table`.
 ```{r fOverlaps, message=TRUE, echo=TRUE,warning=TRUE}
 myOGRE <- fOverlaps(myOGRE)

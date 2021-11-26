@@ -19,6 +19,6 @@ VignetteBuilder: knitr
 RoxygenNote: 7.1.1
 Imports: GenomicRanges, methods, data.table, assertthat, ggplot2, Gviz, IRanges
 Depends: R (>= 4.0), S4Vectors
-Suggests: knitr, rmarkdown
+Suggests: knitr (>=1.36), rmarkdown (>=2.11)
 biocViews: Software, WorkflowStep, BiologicalQuestion, Annotation, Metagenomics,
     Visualization
