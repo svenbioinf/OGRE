@@ -59,7 +59,7 @@ readSubject=function(OGREDataSet){
     subjectName <- tools::file_path_sans_ext(list.files(metadata(OGREDataSet)$subjectFolder))
     OGREDataSet <- c(OGREDataSet,mapply(function(x,y){
       tmp=readRDS(y)
-      assertthat::assert_that(c("ID")%in%names(mcols(tmp)),msg="Query must contain ID column.")
+      assertthat::assert_that(c("ID")%in%names(mcols(tmp)),msg="Subject must contain ID column.")
       assertthat::assert_that(!any(duplicated(tmp$ID)),msg="ID column must be unique.")
       assertthat::assert_that(length(tmp)!=0,msg=paste0("Dataset has no ranges: ",x))
 
@@ -79,16 +79,15 @@ readSubject=function(OGREDataSet){
 #' overlaps of a certain subject type for all query elements. By default also partially overlaps are reported.
 #'
 #' @param OGREDataSet A OGREDataSet.
+#' @param selfHits \code{logical} if FALSE(default) ignores self hits of identical regions within datasets. 
 #' @return OGREDataSet.
 #' @examples
 #' myOGRE=makeExampleOGREDataSet()
 #' myOGRE=loadAnnotations(myOGRE)
 #' myOGRE=fOverlaps(myOGRE)
 #' @export
-fOverlaps <- function(OGREDataSet){
+fOverlaps <- function(OGREDataSet,selfHits=FALSE){
   detailDT <- data.table() #data table to store all overlaps for query vs all subjects
-  sumDT <- data.table()
-  s <- NULL
   metadata(OGREDataSet)$subjectNames <- names(OGREDataSet[2:length(OGREDataSet)])
   for(subj in metadata(OGREDataSet)$subjectNames){
     ol <- findOverlaps(OGREDataSet[[1]],OGREDataSet[[subj]])
@@ -98,9 +97,14 @@ fOverlaps <- function(OGREDataSet){
       next
     }
     else{
-      detailDT <- rbind(detailDT,data.table(queryID=mcols(OGREDataSet[[1]])[ol$q,"ID"],
+      detailDT <- rbind(detailDT,data.table(
+       queryID=mcols(OGREDataSet[[1]])[ol$q,"ID"],
+       queryType=names(OGREDataSet)[1],
        subjID=ol$s,
        subjType=subj,
+       queryChr=as.character(seqnames(OGREDataSet[[names(OGREDataSet)[1]]]))[ol$q],
+       queryStart=start(OGREDataSet[[names(OGREDataSet)[1]]])[ol$q],
+       queryEnd=end(OGREDataSet[[names(OGREDataSet)[1]]])[ol$q],
        subjChr=as.character(seqnames(OGREDataSet[[subj]]))
        [match(ol$s,mcols(OGREDataSet[[subj]])[,"ID"])],
        subjStart=start(OGREDataSet[[subj]])
@@ -108,16 +112,17 @@ fOverlaps <- function(OGREDataSet){
        subjEnd=end(OGREDataSet[[subj]])
        [match(ol$s,mcols(OGREDataSet[[subj]])[,"ID"])]
       ))
-      ol <- ol[,list(s=paste(s,collapse = " ")),by="q"]
-      ol$q <- mcols(OGREDataSet[[1]])[ol$q,"ID"]
-      ol$subjType <- subj
-      names(ol) <- c("queryID","subjID","subjType")
-      sumDT <- rbind(sumDT,ol)
+      if(isFALSE(selfHits)){ #remove self hits
+        detailDT <- detailDT[!(queryID==subjID)]
+      }
     }
   }
-  assert_that(nrow(sumDT)!=0,msg="No overlaps found for any subjects!")
+  metadata(OGREDataSet)$sumDT <- detailDT[,list(
+    subjType=subjType,
+    subjID=paste(subjID,collapse = " ")),by="queryID"]
+  assert_that(nrow(metadata(OGREDataSet)$sumDT)!=0,
+              msg="No overlaps found for any subjects!")
   metadata(OGREDataSet)$detailDT <- detailDT
-  metadata(OGREDataSet)$sumDT <- sumDT
   return(OGREDataSet)
 }
 
@@ -264,7 +269,6 @@ gvizPlot <- function(OGREDataSet,query,
 #'
 #' `makeExampleOGREDataSet` generates a example OGREDataSet from dataset files
 #' stored in OGRE's extdata directory.
-#'
 #' @return OGREDataSet.
 #' @examples
 #' myOGRE=makeExampleOGREDataSet()
@@ -277,3 +281,101 @@ makeExampleOGREDataSet <- function()
   return(myOGRE)
 }
 
+#' List predefined datasets
+#' 
+#' Use `listPredifinedDataSets()` to receive a vector of names for predefined
+#' datasets that can be aquired from AnnotationHub that are already correctly 
+#' parsed and formatted. Each of the listed names can be used as input for
+#' `addDataSetFromHub()`. 
+#' @return \code{character} vector.
+#' @examples
+#' listPredefinedDataSets()
+#' @export
+listPredefinedDataSets <- function(){
+  return(c("protCodingGenes","CGI"))
+}
+
+#' Add dataset from AnnotationHub
+#' 
+#' Adds one of the predifined human dataSets of `listPredefinedDataSets()` to a 
+#' OGREDataSet. DataSets are taken from AnnotationHub and are ready to use for 
+#' OGRE. 
+#' @importFrom assertthat assert_that
+#' @importFrom AnnotationHub AnnotationHub
+#' @param OGREDataSet OGREDataSet
+#' @param dataSet \code{character} Name of one predefined dataSets to add as
+#' query or subject to a OGREDataSet. Possible dataSets can be show with
+#' `listPredefinedDataSets()`
+#' @param type Type of dataSet, must be either query or subject. If query the
+#' dataSet will be added as query and at the first position of OGREDataSet.
+#' @return OGREDataSet.
+#' @examples 
+#' myOGRE <- OGREDataSet() 
+#' myOGRE <- addDataSetFromHub(myOGRE,"protCodingGenes","query")
+#' @export
+addDataSetFromHub <- function(OGREDataSet,dataSet,type){
+  assertthat::assert_that(type%in%c("query","subject"),
+                          msg="Parameter type must be query or subject.")
+  assertthat::assert_that(dataSet%in%listPredefinedDataSets(),
+                          msg=paste("Parameter dataSet type must be among:",
+                          paste(listPredefinedDataSets(),collapse = " ")))
+  if(is.null(metadata(OGREDataSet)$aH)){aH <- AnnotationHub()}
+  switch(dataSet,
+         protCodingGenes={x <- aH[["AH89862"]]
+         x <- x[mcols(x)$type=="gene"&mcols(x)$gene_biotype=="protein_coding"]
+         mcols(x) <-mcols(x)[,c("gene_id","gene_name")]
+         colnames(mcols(x)) <- c("ID","name")
+         },
+         CGI={x <- aH[["AH5086"]]
+         x <- keepStandardChromosomes(x,"Homo_sapiens",pruning.mode="coarse")
+         seqlevelsStyle(x) <- "Ensembl"
+         mcols(x) <- data.frame(ID=seq(1,length(x)),name=mcols(x)$name)
+         }
+  )
+  if(type=="query"){ #add dataSet as query or subject
+    OGREDataSet <- c(GRangesList(x),OGREDataSet) #add x at first position
+    names(OGREDataSet)[1] <- dataSet
+  }else{
+    OGREDataSet[[dataSet]] <- x
+  }
+  if(length(OGREDataSet)>1){ #update subject names
+  metadata(OGREDataSet)$subjectNames<-names(OGREDataSet[2:length(OGREDataSet)])
+  }
+  return(OGREDataSet)
+}
+
+#' Add a GenomicRanges dataset to OGREDataSet                                                                                                                                                                                             
+#' @importFrom assertthat assert_that
+#' @param type Type of dataSet, must be either query or subject. If query the
+#' dataSet will be added as query and at the first position of OGREDataSet. 
+#' @param dataSet A GRanges object Each region needs chromosome, start, end and
+#' strand information. A unique ID and a name column must be present in the 
+#' `GenomicRanges` object metadata.
+#' @return OGREDataSet.
+#' @examples 
+#' myOGRE <- OGREDataSet()
+#' gr <- GRanges(Rle(c("chr2", "chr2", "chr1", "chr3"), c(1, 3, 2, 4)),
+#'       IRanges(1:10, width=10:1, names=head(letters, 10)),
+#'       Rle(strand(c("-", "+", "*", "+", "-")), c(1, 2, 2, 3, 2)),
+#'       ID=1:10, name=paste0("gene",1:10))
+#' myOGRE <- addGRanges(myOGRE,gr,"query")
+#' @export
+addGRanges <- function(OGREDataSet,dataSet,type){
+  assertthat::assert_that(type%in%c("query","subject"),
+                          msg="Parameter type must be query or subject.")
+  assertthat::assert_that(is(dataSet,"class")=="GRanges",
+                          msg="dataSet class must be GRanges.")
+  assertthat::assert_that(c("ID")%in%names(mcols(dataSet)),
+                          msg="DataSet must contain ID column.")
+  assertthat::assert_that(!any(duplicated(dataSet$ID)),
+                          msg="ID column must be unique.")
+  assertthat::assert_that(length(dataSet)!=0,
+                          msg="DataSet has no ranges.")
+  if(type=="query"){
+    OGREDataSet[[1]] <- c(GRangesList(dataSet),OGREDataSet)
+  }else{
+    OGREDataSet[[deparse(substitute(dataSet))]] <- dataSet
+  }
+  metadata(OGREDataSet)$subjectNames <-names(OGREDataSet[2:length(OGREDataSet)])
+  return(OGREDataSet)
+}

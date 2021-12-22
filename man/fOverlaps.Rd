@@ -4,10 +4,12 @@
 \alias{fOverlaps}
 \title{Find overlaps}
 \usage{
-fOverlaps(OGREDataSet)
+fOverlaps(OGREDataSet, selfHits = FALSE)
 }
 \arguments{
 \item{OGREDataSet}{A OGREDataSet.}
+
+\item{selfHits}{\code{logical} if FALSE(default) ignores self hits of identical regions within datasets.}
 }
 \value{
 OGREDataSet.

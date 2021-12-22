@@ -6,3 +6,6 @@
 R/*.Rhistory
 inst/extdata/gvizPlots
 inst/extdata/output
+/doc/
+/Meta/
+.Rproj.user
