@@ -286,7 +286,18 @@ makeExampleOGREDataSet <- function()
 #' Use `listPredifinedDataSets()` to receive a vector of names for predefined
 #' datasets that can be aquired from AnnotationHub that are already correctly 
 #' parsed and formatted. Each of the listed names can be used as input for
-#' `addDataSetFromHub()`. 
+#' `addDataSetFromHub()`. Currently supported:
+#' \itemize{
+#'   \item protCodingGenes - Protein coding genes from HG19 (GRCh37) Ensembl
+#'   For additional information use:
+#'   `getInfoOnIds(AnnotationHub(), "AH10684")` 
+#'   \item CGI - CpG islands from HG19 UCSC
+#'   For additional information use:
+#'   `getInfoOnIds(AnnotationHub(), "AH5086")`
+#'   \item SNP - Common Single Nucleotide Polymorphism from HG19 UCSC
+#'   For additional information use:
+#'   `getInfoOnIds(AnnotationHub(), "AH5105")`
+#' }
 #' @return \code{character} vector.
 #' @examples
 #' listPredefinedDataSets()
@@ -295,17 +306,20 @@ listPredefinedDataSets <- function(){
   return(c("protCodingGenes","CGI"))
 }
 
-#' Add dataset from AnnotationHub
-#' 
-#' Adds one of the predifined human dataSets of `listPredefinedDataSets()` to a 
-#' OGREDataSet. DataSets are taken from AnnotationHub and are ready to use for 
-#' OGRE. 
+#' Add dataSet from AnnotationHub
+#' AnnotationHub offers a wide range of annotated datasets which can be manually
+#' aquired but need some parsing to work with OGRE as detailed in vignette
+#' section "Access to annotation data". 
+#' For convienence `addDataSetFromHub()` adds one of the predefined human 
+#' dataSets of `listPredefinedDataSets()` to a OGREDataSet.Those are taken from 
+#' AnnotationHub and are ready to use for OGRE. Additional information on 
+#' dataSets can be found here \code{\link{listPredefinedDataSets}}. 
 #' @importFrom assertthat assert_that
 #' @importFrom AnnotationHub AnnotationHub
 #' @param OGREDataSet OGREDataSet
 #' @param dataSet \code{character} Name of one predefined dataSets to add as
 #' query or subject to a OGREDataSet. Possible dataSets can be show with
-#' `listPredefinedDataSets()`
+#' `listPredefinedDataSets()`.
 #' @param type Type of dataSet, must be either query or subject. If query the
 #' dataSet will be added as query and at the first position of OGREDataSet.
 #' @return OGREDataSet.
@@ -321,7 +335,7 @@ addDataSetFromHub <- function(OGREDataSet,dataSet,type){
                           paste(listPredefinedDataSets(),collapse = " ")))
   if(is.null(metadata(OGREDataSet)$aH)){aH <- AnnotationHub()}
   switch(dataSet,
-         protCodingGenes={x <- aH[["AH89862"]]
+         protCodingGenes={x <- aH[["AH10684"]]
          x <- x[mcols(x)$type=="gene"&mcols(x)$gene_biotype=="protein_coding"]
          mcols(x) <-mcols(x)[,c("gene_id","gene_name")]
          colnames(mcols(x)) <- c("ID","name")
@@ -330,7 +344,13 @@ addDataSetFromHub <- function(OGREDataSet,dataSet,type){
          x <- keepStandardChromosomes(x,"Homo_sapiens",pruning.mode="coarse")
          seqlevelsStyle(x) <- "Ensembl"
          mcols(x) <- data.frame(ID=seq(1,length(x)),name=mcols(x)$name)
-         }
+         },
+         SNP={x <- aH[["AH5105"]]
+         x <- keepStandardChromosomes(x,"Homo_sapiens",pruning.mode="coarse")
+         seqlevelsStyle(x) <- "Ensembl"
+         mcols(x) <- data.frame(ID=make.unique(mcols(x)$name),name=mcols(x)$name)
+         }       
+         
   )
   if(type=="query"){ #add dataSet as query or subject
     OGREDataSet <- c(GRangesList(x),OGREDataSet) #add x at first position

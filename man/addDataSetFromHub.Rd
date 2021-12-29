@@ -21,7 +21,9 @@ OGREDataSet.
 }
 \description{
 Adds one of the predifined human dataSets of \code{listPredefinedDataSets()} to a
-OGREDataSet. DataSets are taken from AnnotationHub and are ready to use for
+OGREDataSet. Addtitional information on dataSets can be found here
+\code{\link{listPredefinedDataSets()}} DataSets are taken from AnnotationHub
+and are ready to use for
 OGRE.
 }
 \examples{

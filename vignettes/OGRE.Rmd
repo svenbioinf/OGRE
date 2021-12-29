@@ -38,7 +38,14 @@ if(dir.exists("../inst/extdata")){
 ```	
 
 
-## Setup
+## Installation
+Install OGRE using Bioconductor's package installer.
+```{r message=FALSE, warning=FALSE,eval=FALSE}
+if(!requireNamespace("BiocManager", quietly = TRUE))
+	install.packages("BiocManager")
+BiocManager::install("OGRE")
+
+```
 
 Load the OGRE package: 
 

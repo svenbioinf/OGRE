@@ -13,7 +13,19 @@ listPredefinedDataSets()
 Use \code{listPredifinedDataSets()} to receive a vector of names for predefined
 datasets that can be aquired from AnnotationHub that are already correctly
 parsed and formatted. Each of the listed names can be used as input for
-\code{addDataSetFromHub()}.
+\code{addDataSetFromHub()}. Currently supported:
+\itemize{
+\item protCodingGenes - Protein coding genes from HG19 (GRCh37) Ensembl
+For additional information use:
+\code{getInfoOnIds(AnnotationHub(), "AH10684")}
+\item CGI - CpG islands from HG19 UCSC
+For additional information use:
+\code{getInfoOnIds(AnnotationHub(), "AH5086")}
+\item SNP - Common Single Nucleotide Polymorphism from HG19 UCSC
+For additional information use:
+\code{getInfoOnIds(AnnotationHub(), "AH5105")}
+Additional information
+}
 }
 \examples{
 listPredefinedDataSets()
