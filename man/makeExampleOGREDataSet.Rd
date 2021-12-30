@@ -2,7 +2,9 @@
 % Please edit documentation in R/methods.R
 \name{makeExampleOGREDataSet}
 \alias{makeExampleOGREDataSet}
-\title{Make a example OGRE dataset}
+\title{Make a example OGRE dataset
+\code{makeExampleOGREDataSet} generates a example OGREDataSet from dataset files
+stored in OGRE's extdata directory.}
 \usage{
 makeExampleOGREDataSet()
 }
@@ -10,9 +12,10 @@ makeExampleOGREDataSet()
 OGREDataSet.
 }
 \description{
+Make a example OGRE dataset
 \code{makeExampleOGREDataSet} generates a example OGREDataSet from dataset files
 stored in OGRE's extdata directory.
 }
 \examples{
-myOGRE=makeExampleOGREDataSet()
+myOGRE <- makeExampleOGREDataSet()
 }

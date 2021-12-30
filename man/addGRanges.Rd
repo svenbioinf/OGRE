@@ -7,7 +7,9 @@
 addGRanges(OGREDataSet, dataSet, type)
 }
 \arguments{
-\item{dataSet}{A GRanges object Each region needs chromosome, start, end and
+\item{OGREDataSet}{An OGREDataSet}
+
+\item{dataSet}{A GRanges object. Each region needs chromosome, start, end and
 strand information. A unique ID and a name column must be present in the
 \code{GenomicRanges} object metadata.}
 
@@ -22,9 +24,6 @@ Add a GenomicRanges dataset to OGREDataSet
 }
 \examples{
 myOGRE <- OGREDataSet()
-gr <- GRanges(Rle(c("chr2", "chr2", "chr1", "chr3"), c(1, 3, 2, 4)),
-      IRanges(1:10, width=10:1, names=head(letters, 10)),
-      Rle(strand(c("-", "+", "*", "+", "-")), c(1, 2, 2, 3, 2)),
-      ID=1:10, name=paste0("gene",1:10))
-myOGRE <- addGRanges(myOGRE,gr,"query")
+myGRanges <- makeExampleGRanges()
+myOGRE <- addGRanges(myOGRE,myGRanges,"query")
 }

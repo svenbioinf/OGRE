@@ -130,6 +130,7 @@ fOverlaps <- function(OGREDataSet,selfHits=FALSE){
 #'
 #' `sumPlot()` calculates key numbers i.e. (total number of overlaps, number of overlaps per subject...) to help with an
 #' exploratory data evaluation and displays them in an informative barplot.
+#' @importFrom AnnotationHub query
 #' @param OGREDataSet A OGREDataSet.
 #' @return OGREDataSet.
 #' @examples
@@ -148,8 +149,7 @@ sumPlot <- function(OGREDataSet){
   query_full <- sum(table(metadata(OGREDataSet)$sumDT$queryID)>=length(OGREDataSet)-1)
 
   dtbarplot<-data.table(x=c("query_N","query_w_minOne_overlap",
-                            "genes_w_overlap_allSubjTypes"),
-                        query=c(query_N,query_ol,query_full))
+        "genes_w_overlap_allSubjTypes"),query=c(query_N,query_ol,query_full))
   dtbarplot$x<-factor(x = dtbarplot$x,levels = c("query_N","query_w_minOne_overlap",
                                                  "genes_w_overlap_allSubjTypes"))
   dtbarplot$lab<-c(paste0("Total number of submitted queries: ",query_N," (100%)"),
@@ -198,7 +198,8 @@ sumPlot <- function(OGREDataSet){
 #'
 #'`gvizPlot` generates a plot around one or many given query elements with all overlapping subject hits. In addition,
 #'each generated plot is stored in the `gvizPlots` folder next to you
-#'
+#' @importFrom grDevices dev.off pdf
+#' @importFrom stats setNames
 #' @param OGREDataSet A OGREDataSet.
 #' @param query A character vector of one or many query elements ID's (i.e. Gene ID's).
 #' @param gvizPlotsFolder A character pointing to the plot(s) output directory. If not supplied a folder is
@@ -263,22 +264,6 @@ gvizPlot <- function(OGREDataSet,query,
   return(OGREDataSet)
 
 
-}
-
-#' Make a example OGRE dataset
-#'
-#' `makeExampleOGREDataSet` generates a example OGREDataSet from dataset files
-#' stored in OGRE's extdata directory.
-#' @return OGREDataSet.
-#' @examples
-#' myOGRE=makeExampleOGREDataSet()
-#' @export
-makeExampleOGREDataSet <- function()
-{
-  myQueryFolder <- file.path(system.file('extdata', package = 'OGRE'),"query")
-  mySubjectFolder <- file.path(system.file('extdata', package = 'OGRE'),"subject")
-  myOGRE <- OGREDataSetFromDir(queryFolder=myQueryFolder,subjectFolder=mySubjectFolder)
-  return(myOGRE)
 }
 
 #' List predefined datasets
@@ -365,25 +350,23 @@ addDataSetFromHub <- function(OGREDataSet,dataSet,type){
 }
 
 #' Add a GenomicRanges dataset to OGREDataSet                                                                                                                                                                                             
-#' @importFrom assertthat assert_that
-#' @param type Type of dataSet, must be either query or subject. If query the
-#' dataSet will be added as query and at the first position of OGREDataSet. 
-#' @param dataSet A GRanges object Each region needs chromosome, start, end and
+#' @importFrom assertthat assert_that 
+#' @param OGREDataSet An OGREDataSet
+#' @param dataSet A GRanges object. Each region needs chromosome, start, end and
 #' strand information. A unique ID and a name column must be present in the 
 #' `GenomicRanges` object metadata.
+#' @param type Type of dataSet, must be either query or subject. If query the
+#' dataSet will be added as query and at the first position of OGREDataSet. 
 #' @return OGREDataSet.
 #' @examples 
 #' myOGRE <- OGREDataSet()
-#' gr <- GRanges(Rle(c("chr2", "chr2", "chr1", "chr3"), c(1, 3, 2, 4)),
-#'       IRanges(1:10, width=10:1, names=head(letters, 10)),
-#'       Rle(strand(c("-", "+", "*", "+", "-")), c(1, 2, 2, 3, 2)),
-#'       ID=1:10, name=paste0("gene",1:10))
-#' myOGRE <- addGRanges(myOGRE,gr,"query")
+#' myGRanges <- makeExampleGRanges()
+#' myOGRE <- addGRanges(myOGRE,myGRanges,"query")
 #' @export
 addGRanges <- function(OGREDataSet,dataSet,type){
   assertthat::assert_that(type%in%c("query","subject"),
                           msg="Parameter type must be query or subject.")
-  assertthat::assert_that(is(dataSet,"class")=="GRanges",
+  assertthat::assert_that(is(dataSet,"GRanges"),
                           msg="dataSet class must be GRanges.")
   assertthat::assert_that(c("ID")%in%names(mcols(dataSet)),
                           msg="DataSet must contain ID column.")
@@ -392,10 +375,46 @@ addGRanges <- function(OGREDataSet,dataSet,type){
   assertthat::assert_that(length(dataSet)!=0,
                           msg="DataSet has no ranges.")
   if(type=="query"){
-    OGREDataSet[[1]] <- c(GRangesList(dataSet),OGREDataSet)
+    #OGREDataSet[[1]] <- c(GRangesList(dataSet),OGREDataSet)
+    OGREDataSet[[1]] <- dataSet
+    names(OGREDataSet)[1] <- deparse(substitute(dataSet))
+    
   }else{
     OGREDataSet[[deparse(substitute(dataSet))]] <- dataSet
+    metadata(OGREDataSet)$subjectNames <-names(OGREDataSet
+    [2:length(OGREDataSet)])
   }
-  metadata(OGREDataSet)$subjectNames <-names(OGREDataSet[2:length(OGREDataSet)])
   return(OGREDataSet)
+}
+
+#' Make a example OGRE dataset
+#' `makeExampleOGREDataSet` generates a example OGREDataSet from dataset files
+#' stored in OGRE's extdata directory.
+#' @return OGREDataSet.
+#' @examples
+#' myOGRE <- makeExampleOGREDataSet()
+#' @export
+makeExampleOGREDataSet <- function()
+{
+  myQueryFolder <- file.path(system.file('extdata', package = 'OGRE'),"query")
+  mySubjectFolder <- file.path(system.file('extdata', package = 'OGRE'),"subject")
+  myOGRE <- OGREDataSetFromDir(queryFolder=myQueryFolder,subjectFolder=mySubjectFolder)
+  return(myOGRE)
+}
+#' Make an example GRanges dataset
+#'
+#' `makeExampleGRanges` generates an example GRanges dataset.
+#' @importFrom GenomicRanges GRanges
+#' @importFrom IRanges IRanges
+#' @return OGREDataSet.
+#' @examples
+#' myGRanges <- makeExampleGRanges()
+#' @export
+makeExampleGRanges <- function()
+{
+  myGRanges <- GRanges(Rle(c("chr2", "chr2", "chr1", "chr3"), c(1, 3, 2, 4)),
+                       IRanges(1:10, width=10:1, names=head(letters, 10)),
+                       Rle(strand(c("-", "+", "*", "+", "-")), c(1, 2, 2, 3, 2)),
+                       ID=1:10, name=paste0("gene",1:10))
+  return(myGRanges)
 }

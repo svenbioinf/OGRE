@@ -108,7 +108,9 @@ Using the `Gviz` visualization each query can be displayed with all overlapping 
  myOGRE <- gvizPlot(myOGRE,"ENSMUSG00000068196",showPlot = TRUE,trackRegionLabels = setNames(c("name","ID","name"),c("genes","CGI","TFBS")))
 ```
 
+## Session info
 
-
-
+```{r sessionInfo}
+sessionInfo()
+```
 

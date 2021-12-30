@@ -2,7 +2,14 @@
 % Please edit documentation in R/methods.R
 \name{addDataSetFromHub}
 \alias{addDataSetFromHub}
-\title{Add dataset from AnnotationHub}
+\title{Add dataSet from AnnotationHub
+AnnotationHub offers a wide range of annotated datasets which can be manually
+aquired but need some parsing to work with OGRE as detailed in vignette
+section "Access to annotation data".
+For convienence \code{addDataSetFromHub()} adds one of the predefined human
+dataSets of \code{listPredefinedDataSets()} to a OGREDataSet.Those are taken from
+AnnotationHub and are ready to use for OGRE. Additional information on
+dataSets can be found here \code{\link{listPredefinedDataSets}}.}
 \usage{
 addDataSetFromHub(OGREDataSet, dataSet, type)
 }
@@ -11,7 +18,7 @@ addDataSetFromHub(OGREDataSet, dataSet, type)
 
 \item{dataSet}{\code{character} Name of one predefined dataSets to add as
 query or subject to a OGREDataSet. Possible dataSets can be show with
-\code{listPredefinedDataSets()}}
+\code{listPredefinedDataSets()}.}
 
 \item{type}{Type of dataSet, must be either query or subject. If query the
 dataSet will be added as query and at the first position of OGREDataSet.}
@@ -20,11 +27,14 @@ dataSet will be added as query and at the first position of OGREDataSet.}
 OGREDataSet.
 }
 \description{
-Adds one of the predifined human dataSets of \code{listPredefinedDataSets()} to a
-OGREDataSet. Addtitional information on dataSets can be found here
-\code{\link{listPredefinedDataSets()}} DataSets are taken from AnnotationHub
-and are ready to use for
-OGRE.
+Add dataSet from AnnotationHub
+AnnotationHub offers a wide range of annotated datasets which can be manually
+aquired but need some parsing to work with OGRE as detailed in vignette
+section "Access to annotation data".
+For convienence \code{addDataSetFromHub()} adds one of the predefined human
+dataSets of \code{listPredefinedDataSets()} to a OGREDataSet.Those are taken from
+AnnotationHub and are ready to use for OGRE. Additional information on
+dataSets can be found here \code{\link{listPredefinedDataSets}}.
 }
 \examples{
 myOGRE <- OGREDataSet() 
