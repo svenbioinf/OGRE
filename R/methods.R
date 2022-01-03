@@ -207,7 +207,8 @@ sumPlot <- function(OGREDataSet){
 #' @param gvizPlotsFolder A character pointing to the plot(s) output directory. 
 #' If not supplied a folder is automatically generated and can be accessed by 
 #' \code{metatdata(OGREDataSet)$gvizPlotsFolder}.
-#' @param showPlot \code{logical} If \code{FALSE}(default) plots are only saved to `gvizPlotsFolder`. If \code{TRUE}
+#' @param showPlot \code{logical} If \code{FALSE}(default) plots are only saved 
+#' to `gvizPlotsFolder`. If \code{TRUE}
 #' plots are additionally send to the plotting window.
 #' @param trackRegionLabels A labeled character vector that defines the type of 
 #' label that is displayed for subject elements. Values represent type of label 
