@@ -17,8 +17,9 @@ gvizPlot(
 
 \item{query}{A character vector of one or many query elements ID's (i.e. Gene ID's).}
 
-\item{gvizPlotsFolder}{A character pointing to the plot(s) output directory. If not supplied a folder is
-generated next to the dataset folder.}
+\item{gvizPlotsFolder}{A character pointing to the plot(s) output directory.
+If not supplied a folder is automatically generated and can be accessed by
+\code{metatdata(OGREDataSet)$gvizPlotsFolder}.}
 
 \item{trackRegionLabels}{A labeled character vector that defines the type of label that is displayed for subject elements.
 Values represent subject types and and vector labels define the type of label of each subject element. Value "ID" and label "genes" would
@@ -31,8 +32,10 @@ plots are additionally send to the plotting window.}
 OGREDataSet.
 }
 \description{
-\code{gvizPlot} generates a plot around one or many given query elements with all overlapping subject hits. In addition,
-each generated plot is stored in the \code{gvizPlots} folder next to you
+\code{gvizPlot} generates a plot around one or many given query elements with all
+overlapping subject hits. In addition, each generated plot can be stored in
+the \code{gvizPlots} folder get or set by \code{gvizPlotsFolder}. A maximum of 25
+elements can be plotted per track.
 }
 \examples{
 myOGRE=makeExampleOGREDataSet()

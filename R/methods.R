@@ -117,9 +117,8 @@ fOverlaps <- function(OGREDataSet,selfHits=FALSE){
       }
     }
   }
-  metadata(OGREDataSet)$sumDT <- detailDT[,list(
-    subjType=subjType,
-    subjID=paste(subjID,collapse = " ")),by="queryID"]
+  metadata(OGREDataSet)$sumDT <- detailDT[,
+  list(subjID=paste(subjID,collapse = " ")),by=.(queryID,subjType)]
   assert_that(nrow(metadata(OGREDataSet)$sumDT)!=0,
               msg="No overlaps found for any subjects!")
   metadata(OGREDataSet)$detailDT <- detailDT
@@ -128,7 +127,8 @@ fOverlaps <- function(OGREDataSet,selfHits=FALSE){
 
 #' Generate summary plot
 #'
-#' `sumPlot()` calculates key numbers i.e. (total number of overlaps, number of overlaps per subject...) to help with an
+#' `sumPlot()` calculates key numbers i.e. 
+#' (total number of overlaps, number of overlaps per subject...) to help with an
 #' exploratory data evaluation and displays them in an informative barplot.
 #' @importFrom AnnotationHub query
 #' @param OGREDataSet A OGREDataSet.
@@ -147,7 +147,7 @@ sumPlot <- function(OGREDataSet){
   query_ol <- length(unique(metadata(OGREDataSet)$sumDT$queryID))
   query_No_ol <- query_N-query_ol
   query_full <- sum(table(metadata(OGREDataSet)$sumDT$queryID)>=length(OGREDataSet)-1)
-
+#metadata(OGREDataSet)$[,c("queryID","subjType")]
   dtbarplot<-data.table(x=c("query_N","query_w_minOne_overlap",
         "genes_w_overlap_allSubjTypes"),query=c(query_N,query_ol,query_full))
   dtbarplot$x<-factor(x = dtbarplot$x,levels = c("query_N","query_w_minOne_overlap",
@@ -181,7 +181,7 @@ sumPlot <- function(OGREDataSet){
   metadata(OGREDataSet)$barplot_summary <-
     ggplot(dtbarplotDetailed, aes(x = sequence, y =query,fill=col)) +
       geom_bar(stat = "identity", width = 0.3) +
-      scale_fill_manual(guide=FALSE,values = c("steelblue2" = "steelblue2",
+      scale_fill_manual(guide="none",values = c("steelblue2" = "steelblue2",
                                                "steelblue3" = "steelblue3",
                                                "steelblue4" = "steelblue4"))+
       coord_flip() +labs(x = "", y = "Log2(N)") +theme_bw() +  theme_classic() +
@@ -196,19 +196,25 @@ sumPlot <- function(OGREDataSet){
 
 #' Generate Gviz plot
 #'
-#'`gvizPlot` generates a plot around one or many given query elements with all overlapping subject hits. In addition,
-#'each generated plot is stored in the `gvizPlots` folder next to you
+#'`gvizPlot` generates a plot around one or many given query elements with all 
+#'overlapping subject hits. In addition, each generated plot can be stored in 
+#'the `gvizPlots` folder get or set by \code{gvizPlotsFolder}. A maximum of 25
+#'elements can be plotted per track.
 #' @importFrom grDevices dev.off pdf
 #' @importFrom stats setNames
 #' @param OGREDataSet A OGREDataSet.
 #' @param query A character vector of one or many query elements ID's (i.e. Gene ID's).
-#' @param gvizPlotsFolder A character pointing to the plot(s) output directory. If not supplied a folder is
-#' generated next to the dataset folder.
+#' @param gvizPlotsFolder A character pointing to the plot(s) output directory. 
+#' If not supplied a folder is automatically generated and can be accessed by 
+#' \code{metatdata(OGREDataSet)$gvizPlotsFolder}.
 #' @param showPlot \code{logical} If \code{FALSE}(default) plots are only saved to `gvizPlotsFolder`. If \code{TRUE}
 #' plots are additionally send to the plotting window.
-#' @param trackRegionLabels A labeled character vector that defines the type of label that is displayed for subject elements.
-#' Values represent subject types and and vector labels define the type of label of each subject element. Value "ID" and label "genes" would
-#' use the "ID" column of your gene dataset as labels.
+#' @param trackRegionLabels A labeled character vector that defines the type of 
+#' label that is displayed for subject elements. Values represent type of label 
+#' and vector labels define the type of subject element. 
+#' Value "ID" and label "genes" would use the "ID" column of your genes dataset 
+#' as labels. Subject elements not defined in this vector are plotted without
+#' track labels.
 #' @return OGREDataSet.
 #' @examples
 #' myOGRE=makeExampleOGREDataSet()
@@ -227,14 +233,21 @@ gvizPlot <- function(OGREDataSet,query,
       if(dim(tmp)[1]>25){tmp<-tmp[sample(1:dim(tmp)[1],size = 25),]}
       regionLabels<-mcols(OGREDataSet[[x]])[[trackRegionLabels[x]]][match(
         tmp$subjID,mcols(OGREDataSet[[x]])[["ID"]])]
-        if(dim(tmp)[1]!=0){# if subjectType overlaps with query create track
-          AnnotationTrack(start=tmp$subjStart,end = tmp$subjEnd,chr=tmp$subjChr,
-                        name=x,id = regionLabels,fontsize.title=24,
-                        featureAnnotation="id",fontcolor.title="black",fontcolor="black",
-                        fontcolor.group="black",fontcolor.item="black",rotation.item=20)
+      if(dim(tmp)[1]!=0){# if subjectType overlaps with query create track
+        if(is.null(regionLabels)){
+AnnotationTrack(start=tmp$subjStart,end = tmp$subjEnd,chr=tmp$subjChr,
+              name=x,id = regionLabels,fontsize.title=24,
+              featureAnnotation=NULL,fontcolor.title="black",fontcolor="black",
+              fontcolor.group="black",fontcolor.item="black",rotation.item=20)
         }else{
-          AnnotationTrack(GRanges(),name = x,fontcolor.title="black",fontsize.title=24)
+AnnotationTrack(start=tmp$subjStart,end = tmp$subjEnd,chr=tmp$subjChr,
+              name=x,id = regionLabels,fontsize.title=24,
+              featureAnnotation="id",fontcolor.title="black",fontcolor="black",
+              fontcolor.group="black",fontcolor.item="black",rotation.item=20)          
         }
+      }else{
+        AnnotationTrack(GRanges(),name = x,fontcolor.title="black",fontsize.title=24)
+      }
     })
     #Gviz helper tracks
     chr<-as.character(seqnames(OGREDataSet[[1]])[mcols(OGREDataSet[[1]])$ID==q])
@@ -288,7 +301,7 @@ gvizPlot <- function(OGREDataSet,query,
 #' listPredefinedDataSets()
 #' @export
 listPredefinedDataSets <- function(){
-  return(c("protCodingGenes","CGI"))
+  return(c("protCodingGenes","CGI","SNP","TFBS"))
 }
 
 #' Add dataSet from AnnotationHub
@@ -321,6 +334,7 @@ addDataSetFromHub <- function(OGREDataSet,dataSet,type){
   if(is.null(metadata(OGREDataSet)$aH)){aH <- AnnotationHub()}
   switch(dataSet,
          protCodingGenes={x <- aH[["AH10684"]]
+         x <- keepStandardChromosomes(x,"Homo_sapiens",pruning.mode="coarse")
          x <- x[mcols(x)$type=="gene"&mcols(x)$gene_biotype=="protein_coding"]
          mcols(x) <-mcols(x)[,c("gene_id","gene_name")]
          colnames(mcols(x)) <- c("ID","name")
@@ -333,19 +347,33 @@ addDataSetFromHub <- function(OGREDataSet,dataSet,type){
          SNP={x <- aH[["AH5105"]]
          x <- keepStandardChromosomes(x,"Homo_sapiens",pruning.mode="coarse")
          seqlevelsStyle(x) <- "Ensembl"
-         mcols(x) <- data.frame(ID=make.unique(mcols(x)$name),name=mcols(x)$name)
-         }       
-         
+         mcols(x) <-data.frame(ID=make.unique(mcols(x)$name),name=mcols(x)$name)
+         },
+         TFBS={x <- aH[["AH5090"]]
+         x <- keepStandardChromosomes(x,"Homo_sapiens",pruning.mode="coarse")
+         seqlevelsStyle(x) <- "Ensembl"
+         mcols(x)$name <- gsub("V\\$","",mcols(x)$name)
+         mcols(x)$ID <- mcols(x)$name
+         mcols(x)$ID <- make.unique(gsub("_.*","",mcols(x)$ID))
+         }
   )
+  x <- dropSeqlevels(x,"MT","coarse") #MT removed for compatibility with hg19
+  #MT(hg19) differs from MT(GRCH37) see:
+  #https://gatk.broadinstitute.org/hc/en-us/articles/360035890711?id=23390
+  genome(x) <- "hg19"
+  mData <- metadata(OGREDataSet)
   if(type=="query"){ #add dataSet as query or subject
     OGREDataSet <- c(GRangesList(x),OGREDataSet) #add x at first position
     names(OGREDataSet)[1] <- dataSet
+    metadata(OGREDataSet) <- mData
   }else{
     OGREDataSet[[dataSet]] <- x
-  }
+    metadata(OGREDataSet) <- mData
   if(length(OGREDataSet)>1){ #update subject names
   metadata(OGREDataSet)$subjectNames<-names(OGREDataSet[2:length(OGREDataSet)])
   }
+  }
+
   return(OGREDataSet)
 }
 
@@ -374,15 +402,18 @@ addGRanges <- function(OGREDataSet,dataSet,type){
                           msg="ID column must be unique.")
   assertthat::assert_that(length(dataSet)!=0,
                           msg="DataSet has no ranges.")
+  mData <- metadata(OGREDataSet)
   if(type=="query"){
-    #OGREDataSet[[1]] <- c(GRangesList(dataSet),OGREDataSet)
-    OGREDataSet[[1]] <- dataSet
+    OGREDataSet <- c(GRangesList(dataSet),OGREDataSet)
     names(OGREDataSet)[1] <- deparse(substitute(dataSet))
-    
+    metadata(OGREDataSet) <- mData
   }else{
     OGREDataSet[[deparse(substitute(dataSet))]] <- dataSet
-    metadata(OGREDataSet)$subjectNames <-names(OGREDataSet
-    [2:length(OGREDataSet)])
+    metadata(OGREDataSet) <- mData
+    if(length(OGREDataSet)>1){ #update subject names
+      metadata(OGREDataSet)$subjectNames <-names(OGREDataSet
+      [2:length(OGREDataSet)])
+    }  
   }
   return(OGREDataSet)
 }

@@ -70,9 +70,9 @@ metadata(myOGRE)
 Query and subject datasets are read by `loadAnnotations()` and stored in the `OGREDataSet` as `GRanges` objects.
 We are going to read in the following example datasets:
 
-* query "genes" (4 regions) 
-* subject "CGI" (3 CpG islands)
-* subject "TFBS" (7 Transcription factor binding sites) 
+* query "genes" (242 Protein coding genes) 
+* subject "CGI" (365 CpG islands)
+* subject "TFBS" (48761 Transcription factor binding sites) 
 ```{r loadAnnotations, message=TRUE, echo=TRUE,warning=TRUE}
 myOGRE <- loadAnnotations(myOGRE)
 ```
@@ -101,11 +101,11 @@ head(metadata(myOGRE)$detailDT)
 The summary plot provides us with useful information about the number of overlaps between your datasets. 
 ```{r sumPlot, echo=TRUE, message=TRUE, warning=TRUE,fig.dim = c(30/2.54, 20/2.54)}
  myOGRE <- sumPlot(myOGRE)
- S4Vectors::metadata(myOGRE)$barplot_summary
+ metadata(myOGRE)$barplot_summary
 ```
 Using the `Gviz` visualization each query can be displayed with all overlapping subject elements. Choose labels for all region tracks by supplying a `trackRegionLabels` vector. Plots are stored in the same location as your dataset files.
 ```{r gvizPlot, message=TRUE, echo=TRUE,warning=TRUE}
- myOGRE <- gvizPlot(myOGRE,"ENSMUSG00000068196",showPlot = TRUE,trackRegionLabels = setNames(c("name","ID","name"),c("genes","CGI","TFBS")))
+ myOGRE <- gvizPlot(myOGRE,"ENSG00000142168",showPlot = TRUE,trackRegionLabels = setNames(c("name","name"),c("genes","CGI")))
 ```
 
 ## Session info
