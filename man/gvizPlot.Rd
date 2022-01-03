@@ -21,11 +21,15 @@ gvizPlot(
 If not supplied a folder is automatically generated and can be accessed by
 \code{metatdata(OGREDataSet)$gvizPlotsFolder}.}
 
-\item{trackRegionLabels}{A labeled character vector that defines the type of label that is displayed for subject elements.
-Values represent subject types and and vector labels define the type of label of each subject element. Value "ID" and label "genes" would
-use the "ID" column of your gene dataset as labels.}
+\item{trackRegionLabels}{A labeled character vector that defines the type of
+label that is displayed for subject elements. Values represent type of label
+and vector labels define the type of subject element.
+Value "ID" and label "genes" would use the "ID" column of your genes dataset
+as labels. Subject elements not defined in this vector are plotted without
+track labels.}
 
-\item{showPlot}{\code{logical} If \code{FALSE}(default) plots are only saved to \code{gvizPlotsFolder}. If \code{TRUE}
+\item{showPlot}{\code{logical} If \code{FALSE}(default) plots are only saved
+to \code{gvizPlotsFolder}. If \code{TRUE}
 plots are additionally send to the plotting window.}
 }
 \value{

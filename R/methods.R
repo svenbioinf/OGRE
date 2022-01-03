@@ -88,7 +88,8 @@ readSubject=function(OGREDataSet){
 #' @export
 fOverlaps <- function(OGREDataSet,selfHits=FALSE){
   detailDT <- data.table() #data table to store all overlaps for query vs all subjects
-  metadata(OGREDataSet)$subjectNames <- names(OGREDataSet[2:length(OGREDataSet)])
+  metadata(OGREDataSet)$subjectNames <- names(
+    OGREDataSet[seq(2,length(OGREDataSet))])
   for(subj in metadata(OGREDataSet)$subjectNames){
     ol <- findOverlaps(OGREDataSet[[1]],OGREDataSet[[subj]])
     ol <- data.table(q=queryHits(ol),s=mcols(OGREDataSet[[subj]])[subjectHits(ol),1])
@@ -160,21 +161,21 @@ sumPlot <- function(OGREDataSet){
   dtbarplot$col<-"steelblue2"
   metadata(OGREDataSet)$barplot_summary_dt <- dtbarplot
 
-  temp<-sapply(metadata(OGREDataSet)$subjectNames,function(x){
+  temp<-vapply(metadata(OGREDataSet)$subjectNames,function(x){
     length(unique(metadata(OGREDataSet)$detailDT[
-      metadata(OGREDataSet)$detailDT$subjType==x,][["queryID"]]))})
+      metadata(OGREDataSet)$detailDT$subjType==x,][["queryID"]]))},integer(1))
   temp<-data.table(x=names(temp),
    Subjects=temp,
    lab=paste0("Queries with ",names(temp),": ",temp," (",round(temp/query_N*100),"%)"),
    col="steelblue3")
-  subjPerQuery<-round(sapply(metadata(OGREDataSet)$subjectNames,function(x){
-    sum(metadata(OGREDataSet)$detailDT$subjType==x)})/query_N,digits=1)
+  subjPerQuery<-round(vapply(metadata(OGREDataSet)$subjectNames,function(x){
+  sum(metadata(OGREDataSet)$detailDT$subjType==x)},numeric(1))/query_N,digits=1)
   subjPerQuery<-data.table(x=names(subjPerQuery),
                            Subjects=subjPerQuery,
   lab=paste0("Average ",names(subjPerQuery)," per query: ",subjPerQuery),col="steelblue4")
 
   dtbarplotDetailed<-rbind(dtbarplot,temp,subjPerQuery, use.names=FALSE)
-  dtbarplotDetailed$sequence<-dim(dtbarplotDetailed)[1]:1
+  dtbarplotDetailed$sequence<-seq(dim(dtbarplotDetailed)[1],1)
   dtbarplotDetailed$xtext<-dtbarplotDetailed$sequence+0.55
   dtbarplotDetailed$query<-log2(dtbarplotDetailed$query+1)#add +1 to avoid log2(1)=0 and log2(0)=-inf
   metadata(OGREDataSet)$barplot_summary_dt <- dtbarplotDetailed
@@ -231,7 +232,7 @@ gvizPlot <- function(OGREDataSet,query,
     #Subject tracks
     GvizSubjTracks<-lapply(metadata(OGREDataSet)$subjectNames,function(x){
       tmp<-metadata(OGREDataSet)$detailDT[subjType==x & queryID==q]
-      if(dim(tmp)[1]>25){tmp<-tmp[sample(1:dim(tmp)[1],size = 25),]}
+      if(dim(tmp)[1]>25){tmp<-tmp[sample(seq_len(dim(tmp)[1]),size = 25),]}
       regionLabels<-mcols(OGREDataSet[[x]])[[trackRegionLabels[x]]][match(
         tmp$subjID,mcols(OGREDataSet[[x]])[["ID"]])]
       if(dim(tmp)[1]!=0){# if subjectType overlaps with query create track
@@ -371,7 +372,8 @@ addDataSetFromHub <- function(OGREDataSet,dataSet,type){
     OGREDataSet[[dataSet]] <- x
     metadata(OGREDataSet) <- mData
   if(length(OGREDataSet)>1){ #update subject names
-  metadata(OGREDataSet)$subjectNames<-names(OGREDataSet[2:length(OGREDataSet)])
+  metadata(OGREDataSet)$subjectNames<-names(
+    OGREDataSet[seq(2,length(OGREDataSet))])
   }
   }
 
@@ -413,7 +415,7 @@ addGRanges <- function(OGREDataSet,dataSet,type){
     metadata(OGREDataSet) <- mData
     if(length(OGREDataSet)>1){ #update subject names
       metadata(OGREDataSet)$subjectNames <-names(OGREDataSet
-      [2:length(OGREDataSet)])
+      [seq(2,length(OGREDataSet))])
     }  
   }
   return(OGREDataSet)
@@ -445,8 +447,8 @@ makeExampleOGREDataSet <- function()
 makeExampleGRanges <- function()
 {
   myGRanges <- GRanges(Rle(c("chr2", "chr2", "chr1", "chr3"), c(1, 3, 2, 4)),
-                       IRanges(1:10, width=10:1, names=head(letters, 10)),
-                       Rle(strand(c("-", "+", "*", "+", "-")), c(1, 2, 2, 3, 2)),
-                       ID=1:10, name=paste0("gene",1:10))
+             IRanges(seq_len(10), width=seq(10,1), names=head(letters, 10)),
+             Rle(strand(c("-", "+", "*", "+", "-")), c(1, 2, 2, 3, 2)),
+             ID=seq_len(10), name=paste0("gene",seq_len(10)))
   return(myGRanges)
 }
