@@ -10,7 +10,7 @@ listPredefinedDataSets()
 \code{character} vector.
 }
 \description{
-Use \code{listPredifinedDataSets()} to receive a vector of names for predefined
+Use \code{listPredefinedDataSets()} to receive a vector of names for predefined
 datasets that can be aquired from AnnotationHub that are already correctly
 parsed and formatted. Each of the listed names can be used as input for
 \code{addDataSetFromHub()}. Currently supported:

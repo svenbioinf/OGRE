@@ -1,8 +1,12 @@
 #' Load annotation datasets
 #'
-#' Load dataset files containing genomic regions annotation information from hard drive. `loadAnnotations` calls `readQuery` and `readSubject`
-#' to read in genomic regions as `GenomicRanges` objects stored as .RDS / .rds files. Each region needs chromosome, start, end and strand information.
-#' A unique ID and a name column must be present in the `GenomicRanges` object metadata. OGRE searches for the query file in your query folder and any number of subject files in your subjects folder.
+#' Load dataset files containing genomic regions annotation information from 
+#' hard drive. `loadAnnotations` calls `readQuery` and `readSubject`
+#' to read in genomic regions as `GenomicRanges` objects stored as .RDS / .rds 
+#' files. Each region needs chromosome, start, end and strand information.
+#' A unique ID and a name column must be present in the `GenomicRanges` object 
+#' metadata. OGRE searches for the query file in your query folder and any 
+#' number of subject files in your subjects folder.
 #' @param OGREDataSet A OGREDataSet.
 #' @return A OGREDataSet.
 #' @examples
@@ -22,7 +26,8 @@ loadAnnotations <- function(OGREDataSet){
 
 #' Read query dataset
 #'
-#'[readQuery()] scanns `queryFolder` for a `GRanges` object stored as .RDS / .rds file and attaches it to the OGREDataSet.
+#' [readQuery()] scanns `queryFolder` for a `GRanges` object stored as .RDS/.rds
+#' file and attaches it to the OGREDataSet.
 #' @param OGREDataSet A OGREDataSet.
 #' @return A OGREDataSet.
 readQuery=function(OGREDataSet){
@@ -47,7 +52,8 @@ readQuery=function(OGREDataSet){
 }
 #' Read subject datasets
 #'
-#'[readSubject()] scanns `SubjectFolder` for any `GRanges` objects stored as .RDS / .rds files and attaches them to the OGREDataSet.
+#' [readSubject()] scanns `SubjectFolder` for any `GRanges` objects stored as 
+#' .RDS/.rds files and attaches them to the OGREDataSet.
 #' @param OGREDataSet A OGREDataSet.
 #' @return A OGREDataSet.
 readSubject=function(OGREDataSet){
@@ -75,16 +81,19 @@ readSubject=function(OGREDataSet){
 
 #' Find overlaps
 #'
-#' Finds all overlaps between query and subject(s) and stores each hit (overlap) in data table `detailDT`. Data table `sumDT` shows all
-#' overlaps of a certain subject type for all query elements. By default also partially overlaps are reported.
+#' Finds all overlaps between query and subject(s) and stores each hit (overlap)
+#' in data table `detailDT`. Data table `sumDT` shows all
+#' overlaps of a certain subject type for all query elements. By default also 
+#' partially overlaps are reported.
 #'
 #' @param OGREDataSet A OGREDataSet.
-#' @param selfHits \code{logical} if FALSE(default) ignores self hits of identical regions within datasets. 
+#' @param selfHits \code{logical} if FALSE(default) ignores self hits of 
+#' identical regions within datasets. 
 #' @return OGREDataSet.
 #' @examples
-#' myOGRE=makeExampleOGREDataSet()
-#' myOGRE=loadAnnotations(myOGRE)
-#' myOGRE=fOverlaps(myOGRE)
+#' myOGRE <- makeExampleOGREDataSet()
+#' myOGRE <- loadAnnotations(myOGRE)
+#' myOGRE <- fOverlaps(myOGRE)
 #' @export
 fOverlaps <- function(OGREDataSet,selfHits=FALSE){
   detailDT <- data.table() #data table to store all overlaps for query vs all subjects
@@ -135,10 +144,10 @@ fOverlaps <- function(OGREDataSet,selfHits=FALSE){
 #' @param OGREDataSet A OGREDataSet.
 #' @return OGREDataSet.
 #' @examples
-#' myOGRE=makeExampleOGREDataSet()
-#' myOGRE=loadAnnotations(myOGRE)
-#' myOGRE=fOverlaps(myOGRE)
-#' myOGRE=sumPlot(myOGRE)
+#' myOGRE <- makeExampleOGREDataSet()
+#' myOGRE <- loadAnnotations(myOGRE)
+#' myOGRE <- fOverlaps(myOGRE)
+#' myOGRE <- sumPlot(myOGRE)
 #' @export
 sumPlot <- function(OGREDataSet){
   assert_that(!is.null(metadata(OGREDataSet)$sumDT),
@@ -148,7 +157,6 @@ sumPlot <- function(OGREDataSet){
   query_ol <- length(unique(metadata(OGREDataSet)$sumDT$queryID))
   query_No_ol <- query_N-query_ol
   query_full <- sum(table(metadata(OGREDataSet)$sumDT$queryID)>=length(OGREDataSet)-1)
-#metadata(OGREDataSet)$[,c("queryID","subjType")]
   dtbarplot<-data.table(x=c("query_N","query_w_minOne_overlap",
         "genes_w_overlap_allSubjTypes"),query=c(query_N,query_ol,query_full))
   dtbarplot$x<-factor(x = dtbarplot$x,levels = c("query_N","query_w_minOne_overlap",
@@ -160,7 +168,6 @@ sumPlot <- function(OGREDataSet){
                          query_full," (",round(query_full/query_N*100),"%)"))
   dtbarplot$col<-"steelblue2"
   metadata(OGREDataSet)$barplot_summary_dt <- dtbarplot
-
   temp<-vapply(metadata(OGREDataSet)$subjectNames,function(x){
     length(unique(metadata(OGREDataSet)$detailDT[
       metadata(OGREDataSet)$detailDT$subjType==x,][["queryID"]]))},integer(1))
@@ -170,10 +177,8 @@ sumPlot <- function(OGREDataSet){
    col="steelblue3")
   subjPerQuery<-round(vapply(metadata(OGREDataSet)$subjectNames,function(x){
   sum(metadata(OGREDataSet)$detailDT$subjType==x)},numeric(1))/query_N,digits=1)
-  subjPerQuery<-data.table(x=names(subjPerQuery),
-                           Subjects=subjPerQuery,
+  subjPerQuery<-data.table(x=names(subjPerQuery),Subjects=subjPerQuery,
   lab=paste0("Average ",names(subjPerQuery)," per query: ",subjPerQuery),col="steelblue4")
-
   dtbarplotDetailed<-rbind(dtbarplot,temp,subjPerQuery, use.names=FALSE)
   dtbarplotDetailed$sequence<-seq(dim(dtbarplotDetailed)[1],1)
   dtbarplotDetailed$xtext<-dtbarplotDetailed$sequence+0.55
@@ -219,10 +224,10 @@ sumPlot <- function(OGREDataSet){
 #' track labels.
 #' @return OGREDataSet.
 #' @examples
-#' myOGRE=makeExampleOGREDataSet()
-#' myOGRE=loadAnnotations(myOGRE)
-#' myOGRE=fOverlaps(myOGRE)
-#' myOGRE=gvizPlot(myOGRE,query="ENSMUSG00000068196")
+#' myOGRE <- makeExampleOGREDataSet()
+#' myOGRE <- loadAnnotations(myOGRE)
+#' myOGRE <- fOverlaps(myOGRE)
+#' myOGRE <- gvizPlot(myOGRE,query="ENSG00000142168")
 #' @export
 gvizPlot <- function(OGREDataSet,query,
  gvizPlotsFolder = metadata(OGREDataSet)$gvizPlotsFolder,
@@ -277,13 +282,11 @@ AnnotationTrack(start=tmp$subjStart,end = tmp$subjEnd,chr=tmp$subjChr,
     }
   }
   return(OGREDataSet)
-
-
 }
 
 #' List predefined datasets
 #' 
-#' Use `listPredifinedDataSets()` to receive a vector of names for predefined
+#' Use `listPredefinedDataSets()` to receive a vector of names for predefined
 #' datasets that can be aquired from AnnotationHub that are already correctly 
 #' parsed and formatted. Each of the listed names can be used as input for
 #' `addDataSetFromHub()`. Currently supported:
@@ -376,7 +379,6 @@ addDataSetFromHub <- function(OGREDataSet,dataSet,type){
     OGREDataSet[seq(2,length(OGREDataSet))])
   }
   }
-
   return(OGREDataSet)
 }
 

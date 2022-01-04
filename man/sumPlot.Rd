@@ -18,8 +18,8 @@ OGREDataSet.
 exploratory data evaluation and displays them in an informative barplot.
 }
 \examples{
-myOGRE=makeExampleOGREDataSet()
-myOGRE=loadAnnotations(myOGRE)
-myOGRE=fOverlaps(myOGRE)
-myOGRE=sumPlot(myOGRE)
+myOGRE <- makeExampleOGREDataSet()
+myOGRE <- loadAnnotations(myOGRE)
+myOGRE <- fOverlaps(myOGRE)
+myOGRE <- sumPlot(myOGRE)
 }

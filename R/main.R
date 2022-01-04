@@ -1,7 +1,7 @@
 #' BuildOGREDataSetFromDir
 #'
 #' Builds a `OGREDataset` from user specified directories containing datasets for which an overlap between query and subject is to be calculated.
-#' A `OGREDataset` is a `GenomicRangesList` with stores datasets in a list like structure and possible metadata information.
+#' A `OGREDataset` is a `GenomicRangesList` which stores datasets in a list like structure and possible metadata information.
 #' @param queryFolder A \code{character} path pointing to the directory where your query dataset is located.
 #' @param subjectFolder A \code{character} path pointing to the directory where your subject dataset(s) are located.
 #' @import GenomicRanges methods ggplot2 Gviz S4Vectors

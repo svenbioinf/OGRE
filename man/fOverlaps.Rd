@@ -9,17 +9,20 @@ fOverlaps(OGREDataSet, selfHits = FALSE)
 \arguments{
 \item{OGREDataSet}{A OGREDataSet.}
 
-\item{selfHits}{\code{logical} if FALSE(default) ignores self hits of identical regions within datasets.}
+\item{selfHits}{\code{logical} if FALSE(default) ignores self hits of
+identical regions within datasets.}
 }
 \value{
 OGREDataSet.
 }
 \description{
-Finds all overlaps between query and subject(s) and stores each hit (overlap) in data table \code{detailDT}. Data table \code{sumDT} shows all
-overlaps of a certain subject type for all query elements. By default also partially overlaps are reported.
+Finds all overlaps between query and subject(s) and stores each hit (overlap)
+in data table \code{detailDT}. Data table \code{sumDT} shows all
+overlaps of a certain subject type for all query elements. By default also
+partially overlaps are reported.
 }
 \examples{
-myOGRE=makeExampleOGREDataSet()
-myOGRE=loadAnnotations(myOGRE)
-myOGRE=fOverlaps(myOGRE)
+myOGRE <- makeExampleOGREDataSet()
+myOGRE <- loadAnnotations(myOGRE)
+myOGRE <- fOverlaps(myOGRE)
 }

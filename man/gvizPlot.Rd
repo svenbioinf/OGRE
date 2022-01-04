@@ -42,8 +42,8 @@ the \code{gvizPlots} folder get or set by \code{gvizPlotsFolder}. A maximum of 2
 elements can be plotted per track.
 }
 \examples{
-myOGRE=makeExampleOGREDataSet()
-myOGRE=loadAnnotations(myOGRE)
-myOGRE=fOverlaps(myOGRE)
-myOGRE=gvizPlot(myOGRE,query="ENSMUSG00000068196")
+myOGRE <- makeExampleOGREDataSet()
+myOGRE <- loadAnnotations(myOGRE)
+myOGRE <- fOverlaps(myOGRE)
+myOGRE <- gvizPlot(myOGRE,query="ENSG00000142168")
 }
