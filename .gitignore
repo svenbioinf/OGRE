@@ -9,3 +9,4 @@ inst/extdata/output
 /doc/
 /Meta/
 .Rproj.user
+tests/testthat/OGRE

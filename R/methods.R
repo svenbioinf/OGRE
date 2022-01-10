@@ -30,6 +30,7 @@ loadAnnotations <- function(OGREDataSet){
 #' file and attaches it to the OGREDataSet.
 #' @param OGREDataSet A OGREDataSet.
 #' @return A OGREDataSet.
+#' @keywords internal
 readQuery=function(OGREDataSet){
   assertthat::assert_that(length(list.files(metadata(OGREDataSet)$queryFolder))>0,
                           msg="Query folder is empty!")
@@ -56,6 +57,7 @@ readQuery=function(OGREDataSet){
 #' .RDS/.rds files and attaches them to the OGREDataSet.
 #' @param OGREDataSet A OGREDataSet.
 #' @return A OGREDataSet.
+#' @keywords internal
 readSubject=function(OGREDataSet){
   assertthat::assert_that(length(list.files(metadata(OGREDataSet)$subjectFolder))>0,
                           msg="Subject folder is empty!")
@@ -96,6 +98,7 @@ readSubject=function(OGREDataSet){
 #' myOGRE <- fOverlaps(myOGRE)
 #' @export
 fOverlaps <- function(OGREDataSet,selfHits=FALSE){
+  queryID <- subjID <- subjType <- . <-  NULL
   detailDT <- data.table() #data table to store all overlaps for query vs all subjects
   metadata(OGREDataSet)$subjectNames <- names(
     OGREDataSet[seq(2,length(OGREDataSet))])
@@ -152,6 +155,7 @@ fOverlaps <- function(OGREDataSet,selfHits=FALSE){
 sumPlot <- function(OGREDataSet){
   assert_that(!is.null(metadata(OGREDataSet)$sumDT),
               msg="No data to generate sumPlot!")
+  xtext <- lab <- NULL
   #summary barplot
   query_N <- length(unique(mcols(OGREDataSet[[1]])$ID))
   query_ol <- length(unique(metadata(OGREDataSet)$sumDT$queryID))
@@ -233,6 +237,7 @@ gvizPlot <- function(OGREDataSet,query,
  gvizPlotsFolder = metadata(OGREDataSet)$gvizPlotsFolder,
  trackRegionLabels =setNames(rep("ID",length(OGREDataSet)),names(OGREDataSet)),
  showPlot=FALSE){
+  queryID <- subjType <-  NULL
   for(q in query){
     #Subject tracks
     GvizSubjTracks<-lapply(metadata(OGREDataSet)$subjectNames,function(x){
@@ -242,12 +247,12 @@ gvizPlot <- function(OGREDataSet,query,
         tmp$subjID,mcols(OGREDataSet[[x]])[["ID"]])]
       if(dim(tmp)[1]!=0){# if subjectType overlaps with query create track
         if(is.null(regionLabels)){
-AnnotationTrack(start=tmp$subjStart,end = tmp$subjEnd,chr=tmp$subjChr,
+AnnotationTrack(start=tmp$subjStart,end = tmp$subjEnd,chromosome=tmp$subjChr,
               name=x,id = regionLabels,fontsize.title=24,
               featureAnnotation=NULL,fontcolor.title="black",fontcolor="black",
               fontcolor.group="black",fontcolor.item="black",rotation.item=20)
         }else{
-AnnotationTrack(start=tmp$subjStart,end = tmp$subjEnd,chr=tmp$subjChr,
+AnnotationTrack(start=tmp$subjStart,end = tmp$subjEnd,chromosome=tmp$subjChr,
               name=x,id = regionLabels,fontsize.title=24,
               featureAnnotation="id",fontcolor.title="black",fontcolor="black",
               fontcolor.group="black",fontcolor.item="black",rotation.item=20)          
@@ -319,6 +324,7 @@ listPredefinedDataSets <- function(){
 #' dataSets can be found here \code{\link{listPredefinedDataSets}}. 
 #' @importFrom assertthat assert_that
 #' @importFrom AnnotationHub AnnotationHub
+#' @importFrom GenomeInfoDb keepStandardChromosomes seqlevelsStyle dropSeqlevels
 #' @param OGREDataSet OGREDataSet
 #' @param dataSet \code{character} Name of one predefined dataSets to add as
 #' query or subject to a OGREDataSet. Possible dataSets can be show with
@@ -339,32 +345,36 @@ addDataSetFromHub <- function(OGREDataSet,dataSet,type){
   if(is.null(metadata(OGREDataSet)$aH)){aH <- AnnotationHub()}
   switch(dataSet,
          protCodingGenes={x <- aH[["AH10684"]]
-         x <- keepStandardChromosomes(x,"Homo_sapiens",pruning.mode="coarse")
+         x <- GenomeInfoDb::keepStandardChromosomes(x,"Homo_sapiens",
+                                                    pruning.mode="coarse")
          x <- x[mcols(x)$type=="gene"&mcols(x)$gene_biotype=="protein_coding"]
          mcols(x) <-mcols(x)[,c("gene_id","gene_name")]
          colnames(mcols(x)) <- c("ID","name")
          },
          CGI={x <- aH[["AH5086"]]
-         x <- keepStandardChromosomes(x,"Homo_sapiens",pruning.mode="coarse")
-         seqlevelsStyle(x) <- "Ensembl"
+         x <- GenomeInfoDb::keepStandardChromosomes(x,"Homo_sapiens",
+                                                    pruning.mode="coarse")
+         GenomeInfoDb::seqlevelsStyle(x) <- "Ensembl"
          mcols(x) <- data.frame(ID=seq(1,length(x)),name=mcols(x)$name)
          },
          SNP={x <- aH[["AH5105"]]
-         x <- keepStandardChromosomes(x,"Homo_sapiens",pruning.mode="coarse")
-         seqlevelsStyle(x) <- "Ensembl"
+         x <- GenomeInfoDb::keepStandardChromosomes(x,"Homo_sapiens",
+                                                    pruning.mode="coarse")
+         GenomeInfoDb::seqlevelsStyle(x) <- "Ensembl"
          mcols(x) <-data.frame(ID=make.unique(mcols(x)$name),name=mcols(x)$name)
          },
          TFBS={x <- aH[["AH5090"]]
-         x <- keepStandardChromosomes(x,"Homo_sapiens",pruning.mode="coarse")
-         seqlevelsStyle(x) <- "Ensembl"
+         x <- GenomeInfoDb::keepStandardChromosomes(x,"Homo_sapiens",
+                                                    pruning.mode="coarse")
+         GenomeInfoDb::seqlevelsStyle(x) <- "Ensembl"
          mcols(x)$name <- gsub("V\\$","",mcols(x)$name)
          mcols(x)$ID <- mcols(x)$name
          mcols(x)$ID <- make.unique(gsub("_.*","",mcols(x)$ID))
          }
   )
-  x <- dropSeqlevels(x,"MT","coarse") #MT removed for compatibility with hg19
-  #MT(hg19) differs from MT(GRCH37) see:
+  #MT removed for compatibility with hg19,MT(hg19) differs from MT(GRCH37) see:
   #https://gatk.broadinstitute.org/hc/en-us/articles/360035890711?id=23390
+  x <- GenomeInfoDb::dropSeqlevels(x,"MT","coarse") 
   genome(x) <- "hg19"
   mData <- metadata(OGREDataSet)
   if(type=="query"){ #add dataSet as query or subject

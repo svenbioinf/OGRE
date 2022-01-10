@@ -3,7 +3,13 @@ title: "The OGRE user guide"
 author: "Sven Berres"
 date: "`r format(Sys.Date(), '%m/%d/%Y')`"
 abstract: >
-    OGRE calculates overlap between user defined annotated genomic region datasets. Any regions can be supplied such as public annotations (genes), genetic variation (SNPs, mutations), regulatory elements (TFBS, promoters, CpG islands) and basically all  types of NGS output from sequencing experiments. After overlap calculation, key numbers help analyse the extend of overlaps which can also be visualized at a genomic level. OGRE package version: `r packageVersion("OGRE")`
+    OGRE calculates overlap between user defined annotated genomic region 
+    datasets. Any regions can be supplied such as public annotations (genes), 
+    genetic variation (SNPs, mutations), regulatory elements (TFBS, promoters, 
+    CpG islands) and basically all  types of NGS output from sequencing 
+    experiments. After overlap calculation, key numbers help analyse the extend 
+    of overlaps which can also be visualized at a genomic level. 
+    OGRE package version: `r packageVersion("OGRE")`
 
 
 output:
@@ -52,19 +58,28 @@ library(OGRE)
 ```
 ## Quick start
 
-To start up OGRE you have to generate a `OGREDataSet` that is used to store your datasets and additional information about the analysis that you are conducting. Query and subjects files can be conveniently stored in their own folders as GRanges objects in form of stored .rds / .RDS files. We point OGRE to the correct location by supplying a path for each folder with the character vectors `queryFolder` and `subjectFolder`. In this vignette we are using lightweight query and subject example data sets to show OGRE's functionality.
+To start up OGRE you have to generate a `OGREDataSet` that is used to store your
+datasets and additional information about the analysis that you are conducting.
+Query and subjects files can be conveniently stored in their own folders as
+GRanges objects in form of stored .rds / .RDS files. We point OGRE to the
+correct location by supplying a path for each folder with the character vectors
+`queryFolder` and `subjectFolder`. In this vignette we are using lightweight
+query and subject example data sets to show OGRE's functionality.
 
 ```{r InitializeOGRE, message=TRUE, echo=TRUE,warning=FALSE}
 myQueryFolder <- file.path(system.file('extdata', package = 'OGRE'),"query")
 mySubjectFolder <- file.path(system.file('extdata', package = 'OGRE'),"subject")
 
-myOGRE <- OGREDataSetFromDir(queryFolder=myQueryFolder,subjectFolder=mySubjectFolder)
+myOGRE <- OGREDataSetFromDir(queryFolder=myQueryFolder,
+                             subjectFolder=mySubjectFolder)
 ```
-By monitoring OGRE's metadata information you can make sure the input paths you supplied are stored correctly.
+By monitoring OGRE's metadata information you can make sure the input paths you
+supplied are stored correctly.
 ```{r checkMetadata, message=TRUE, echo=TRUE,warning=TRUE}
 metadata(myOGRE)
 ```
-Query and subject datasets are read by `loadAnnotations()` and stored in the `OGREDataSet` as `GRanges` objects.
+Query and subject datasets are read by `loadAnnotations()` and stored in the 
+`OGREDataSet` as `GRanges` objects.
 We are going to read in the following example datasets:
 
 * query "genes" (242 Protein coding genes) 
@@ -73,7 +88,9 @@ We are going to read in the following example datasets:
 ```{r loadAnnotations, message=TRUE, echo=TRUE,warning=TRUE}
 myOGRE <- loadAnnotations(myOGRE)
 ```
-OGRE uses your dataset file names to label query and subjects internally, we can check these names by using the `names()` function since every `OGREDataSet` is a `GRangesList`. 
+OGRE uses your dataset file names to label query and subjects internally, we can
+check these names by using the `names()` function since every `OGREDataSet` is a
+`GRangesList`. 
 ```{r checkDatasetNames, message=TRUE, echo=TRUE,warning=TRUE}
 names(myOGRE)
 ```
@@ -82,25 +99,31 @@ Let's have a look at the stored datasets:
 myOGRE
 ```
 To find overlaps between your query and subject datasets we call `fOverlaps()`.
-Internally OGRE makes use of the `GenomicRanges` package to calculate full and partial overlap as schematically shown.
+Internally OGRE makes use of the `GenomicRanges` package to calculate full and 
+partial overlap as schematically shown.
 <br />
 ```{r echo=FALSE, out.width='70%',fig.align='center'}
 knitr::include_graphics(file.path(vigDir,'overlap.png'))
 ```
 <br />
-Any existing subject - query hits are then listed in `detailDT` and stored as a `data.table`.
+Any existing subject - query hits are then listed in `detailDT` and stored as a 
+`data.table`.
 ```{r fOverlaps, message=TRUE, echo=TRUE,warning=TRUE}
 myOGRE <- fOverlaps(myOGRE)
 head(metadata(myOGRE)$detailDT)
 ```
 
 
-The summary plot provides us with useful information about the number of overlaps between your datasets. 
+The summary plot provides us with useful information about the number of 
+overlaps between your datasets. 
 ```{r sumPlot, echo=TRUE, message=TRUE, warning=TRUE,fig.dim = c(30/2.54, 20/2.54)}
  myOGRE <- sumPlot(myOGRE)
  metadata(myOGRE)$barplot_summary
 ```
-Using the `Gviz` visualization each query can be displayed with all overlapping subject elements. Choose labels for all region tracks by supplying a `trackRegionLabels` vector. Plots are stored in the same location as your dataset files.
+Using the `Gviz` visualization each query can be displayed with all overlapping
+subject elements. Choose labels for all region tracks by supplying a 
+`trackRegionLabels` vector. Plots are stored in the same location as your 
+dataset files.
 ```{r gvizPlot, message=TRUE, echo=TRUE,warning=TRUE}
  myOGRE <- gvizPlot(myOGRE,"ENSG00000142168",showPlot = TRUE,trackRegionLabels = setNames(c("name","name"),c("genes","CGI")))
 ```
