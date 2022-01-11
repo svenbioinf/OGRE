@@ -16,3 +16,4 @@ A OGREDataSet.
 \code{\link[=readSubject]{readSubject()}} scanns \code{SubjectFolder} for any \code{GRanges} objects stored as
 .RDS/.rds files and attaches them to the OGREDataSet.
 }
+\keyword{internal}

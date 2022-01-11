@@ -13,7 +13,6 @@
 #' myOGRE=makeExampleOGREDataSet()
 #' myOGRE=loadAnnotations(myOGRE)
 #' @export
-
 loadAnnotations <- function(OGREDataSet){
   OGREDataSet <- readQuery(OGREDataSet)
   OGREDataSet <- readSubject(OGREDataSet)
