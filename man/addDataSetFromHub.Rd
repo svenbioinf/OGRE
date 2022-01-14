@@ -5,7 +5,7 @@
 \title{Add dataSet from AnnotationHub
 AnnotationHub offers a wide range of annotated datasets which can be manually
 aquired but need some parsing to work with OGRE as detailed in vignette
-section "Access to annotation data".
+section "Load datasets from AnnotationHub".
 For convienence \code{addDataSetFromHub()} adds one of the predefined human
 dataSets of \code{listPredefinedDataSets()} to a OGREDataSet.Those are taken from
 AnnotationHub and are ready to use for OGRE. Additional information on
@@ -30,7 +30,7 @@ OGREDataSet.
 Add dataSet from AnnotationHub
 AnnotationHub offers a wide range of annotated datasets which can be manually
 aquired but need some parsing to work with OGRE as detailed in vignette
-section "Access to annotation data".
+section "Load datasets from AnnotationHub".
 For convienence \code{addDataSetFromHub()} adds one of the predefined human
 dataSets of \code{listPredefinedDataSets()} to a OGREDataSet.Those are taken from
 AnnotationHub and are ready to use for OGRE. Additional information on

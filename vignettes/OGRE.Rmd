@@ -3,29 +3,26 @@ title: "The OGRE user guide"
 author: "Sven Berres"
 date: "`r format(Sys.Date(), '%m/%d/%Y')`"
 abstract: >
-    OGRE calculates overlap between user defined annotated genomic region 
-    datasets. Any regions can be supplied such as public annotations (genes), 
-    genetic variation (SNPs, mutations), regulatory elements (TFBS, promoters, 
-    CpG islands) and basically all  types of NGS output from sequencing 
-    experiments. After overlap calculation, key numbers help analyse the extend 
-    of overlaps which can also be visualized at a genomic level. 
-    OGRE package version: `r packageVersion("OGRE")`
-
-
+  OGRE calculates overlap between user defined annotated genomic region
+  datasets. Any regions can be supplied such as public annotations (genes),
+  genetic variation (SNPs, mutations), regulatory elements (TFBS, promoters,
+  CpG islands) and basically all  types of NGS output from sequencing
+  experiments. After overlap calculation, key numbers help analyse the extend
+  of overlaps which can also be visualized at a genomic level.
+  OGRE package version: `r packageVersion("OGRE")`
 output:
-    rmarkdown::html_document:
+  rmarkdown::html_document:
     highlight: pygments
     toc: true
     fig_width: 5
-
 vignette: >
   %\VignetteIndexEntry{OGRE}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
   %\usepackage[utf8]{inputenc}
   %\VignetteBuilder{knitr}
-
 ---
+
 ```{r echo=FALSE, out.width='30%',fig.align='center'}
 knitr::include_graphics('./logo.png')
 ```
@@ -42,7 +39,9 @@ if(dir.exists("../inst/extdata")){
   knitr::opts_knit$set(root.dir = "../extdata")
 }
 ```
-## Installation
+
+# Installation
+
 Install OGRE using Bioconductor's package installer.
 ```{r message=FALSE, warning=FALSE,eval=FALSE}
 if(!requireNamespace("BiocManager", quietly = TRUE))
@@ -56,7 +55,8 @@ Load the OGRE package:
 library(OGRE)
 
 ```
-## Quick start
+
+# Quick start- load datasets from hard drive
 
 To start up OGRE you have to generate a `OGREDataSet` that is used to store your
 datasets and additional information about the analysis that you are conducting.
@@ -112,8 +112,6 @@ Any existing subject - query hits are then listed in `detailDT` and stored as a
 myOGRE <- fOverlaps(myOGRE)
 head(metadata(myOGRE)$detailDT)
 ```
-
-
 The summary plot provides us with useful information about the number of 
 overlaps between your datasets. 
 ```{r sumPlot, echo=TRUE, message=TRUE, warning=TRUE,fig.dim = c(30/2.54, 20/2.54)}
@@ -128,7 +126,84 @@ dataset files.
  myOGRE <- gvizPlot(myOGRE,"ENSG00000142168",showPlot = TRUE,trackRegionLabels = setNames(c("name","name"),c("genes","CGI")))
 ```
 
-## Session info
+#   Quick start- load datasets from AnnotationHub
+
+AnnotationHub offers a wide range of annotated datasets which can be manually
+aquired but need some parsing to work with OGRE as detailed in vignette
+section [Frequently Asked Questions](#FAQ)(FAQ).
+For convenience `addDataSetFromHub()` adds one of the predefined human 
+datasets of `listPredefinedDataSets()` to an OGREDataSet. Those are taken from 
+AnnotationHub and are ready to use for OGRE.
+We start by creating an empty OGREDataSet and attaching one dataset after another,
+whereby one query and two subjects are added. The datasets are now ready for
+further analysis.
+
+```{r datasetsFromAnnotationHub}
+myOGRE <- OGREDataSet() 
+listPredefinedDataSets()
+myOGRE <- addDataSetFromHub(myOGRE,"protCodingGenes","query")
+myOGRE <- addDataSetFromHub(myOGRE,"CGI","subject")
+myOGRE <- addDataSetFromHub(myOGRE,"TFBS","subject")
+
+```
+
+
+#   Quick start- load user defined GRanges datasets
+
+To offer more flexibility `addGRanges()` enables the user to attach additional
+datasets to OGRE in form of GRanges objects. Again we start by creating an 
+empty OGREDataSet and generate an example GRanges object which is then added to
+your OGREDataSet either as "query" or "subject". Datasets from external sources
+are often stored as text files like .gff or .gtf files. To make them work with 
+OGRE we recommend reading them in with `read.table()` or `data.table::fread()` to
+obtain a data frame object. After making sure the dataset complies with the
+requirements in section [How to add custom GRanges datasets?] 
+`GenomicRanges::makeGRangesFromDataFrame()` offers a convenient way to generate
+GRanges object from data frames.
+
+```{r datasetsUserGRanges,eval=FALSE}
+myOGRE <- OGREDataSet()
+myGRanges <- makeExampleGRanges()
+myOGRE <- addGRanges(myOGRE,myGRanges,"query")
+```
+<a name="FAQ"/>
+
+#   Frequently asked questions
+
+##    How to add additional datasets from AnnotationHub?
+
+Use `AnnotationHub()` to connect to AnnotationHub. Each dataset is stored
+under a unique ID and can be accessed in a list like fashion i.e. `aH[["AH5086"]]`.
+Queries like `c("GRanges","Homo sapiens", "CpG")` enable browsing through datasets.
+In this case we are searching for human CpG islands ranges stored as GRanges
+objects. For more information refer to `?AnnotationHub`
+To make those datasets compatible with OGRE additional parsing is needed as
+stated in [How to add custom GRanges datasets?]
+
+```{r additionalAnnotationHub,eval=FALSE}
+aH <- AnnotationHub()
+aH[["AH5086"]]
+q <- query(aH, c("GRanges","Homo sapiens", "CpG"))
+```
+
+##    How to add custom GRanges datasets?
+
+Any GRanges datasets can be added that fulfill basic compatibility requirements.
+GRanges objects must:
+
+* Originate from a common genome build i.e. "HG19"
+
+Use `GenomeInfoDb::genome()` on any GRanges object to get/set genome information
+
+* Contain the same set of chromosomes i.e. chr1 != 1 or chrM != MT
+
+Use `GenomeInfoDb::seqinfo()` on any GRanges object to get/set chromosome information
+
+* Contain a "name" and a (unique) "ID" column
+
+Use `S4Vectors::mcols()` on any GRanges object to get/set metadata information
+
+#   Session info
 
 ```{r sessionInfo}
 sessionInfo()
