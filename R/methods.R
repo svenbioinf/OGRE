@@ -238,6 +238,7 @@ gvizPlot <- function(OGREDataSet,query,
  showPlot=FALSE){
   queryID <- subjType <-  NULL
   for(q in query){
+    message(paste0("Plotting query: ",q))
     #Subject tracks
     GvizSubjTracks<-lapply(metadata(OGREDataSet)$subjectNames,function(x){
       tmp<-metadata(OGREDataSet)$detailDT[subjType==x & queryID==q]
