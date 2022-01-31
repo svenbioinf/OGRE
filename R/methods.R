@@ -306,6 +306,9 @@ AnnotationTrack(start=tmp$subjStart,end = tmp$subjEnd,chromosome=tmp$subjChr,
 #'   \item SNP - Common Single Nucleotide Polymorphism from HG19 UCSC
 #'   For additional information use:
 #'   `getInfoOnIds(AnnotationHub(), "AH5105")`
+#'   \item TFBS - Transcription Factor Binding Sites conserved from HG19 UCSC
+#'   For additional information use:
+#'   `getInfoOnIds(AnnotationHub(), "AH5090")`
 #' }
 #' @return \code{character} vector.
 #' @examples

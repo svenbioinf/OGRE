@@ -1,4 +1,4 @@
-# Example data consists of human protein coding genes, CGI and TFBS (hg19), 
+# Example data consists of human protein coding genes,CGI, SNP and TFBS (hg19), 
 # taken from AnnotationHub using OGRE and reduced to Chr21. The aquired GRanges
 # data is then stored under
 # the extdata folder as .RDS files. It can be easily reproduced using below 
@@ -15,8 +15,10 @@
 # -SNP - Common Single Nucleotide Polymorphism from HG19 UCSC
 #   For additional information use:
 #   `getInfoOnIds(AnnotationHub(), "AH5105")`
-#
-#
+# -TFBS - Transcription Factor Binding Sites conserved from HG19 UCSC
+#   For additional information use:
+#   `getInfoOnIds(AnnotationHub(), "AH5090")`
+
 library(OGRE)
 myOGRE <- OGREDataSet()
 myOGRE <- addDataSetFromHub(myOGRE,"protCodingGenes","query")
