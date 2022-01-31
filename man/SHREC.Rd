@@ -6,6 +6,9 @@
 \usage{
 SHREC()
 }
+\value{
+A shiny app object
+}
 \description{
 \code{SHREC()} is a graphical user interface for OGRE
 }

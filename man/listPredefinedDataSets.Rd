@@ -24,6 +24,9 @@ For additional information use:
 \item SNP - Common Single Nucleotide Polymorphism from HG19 UCSC
 For additional information use:
 \code{getInfoOnIds(AnnotationHub(), "AH5105")}
+\item TFBS - Transcription Factor Binding Sites conserved from HG19 UCSC
+For additional information use:
+\code{getInfoOnIds(AnnotationHub(), "AH5090")}
 }
 }
 \examples{
