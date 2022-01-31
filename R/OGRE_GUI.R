@@ -4,13 +4,14 @@
 #' @import shiny 
 #' @importFrom DT renderDT JS
 #' @importFrom shinyFiles shinyDirButton
+#' @return A shiny app object
 #' @examples
 #' SHREC()
 #' @export
 
 SHREC <- function(){
 
-shinyApp(
+SHRECApp <- shinyApp(
   ui <- shinyUI(
     navbarPage("OGRE",tags$head(tags$script(HTML('Shiny.addCustomMessageHandler("jsCode",function(message) {eval(message.value);});'))),
       tabPanel("Notes",
@@ -52,7 +53,7 @@ shinyApp(
       )
     )
   ),
-  server <-  function(input, output,session) {
+  server =  function(input, output,session) {
     v = reactiveValues(myOGRE=OGREDataSet(),
                        queryFolder=NULL, 
                        subjFolder=NULL,
@@ -110,7 +111,7 @@ shinyApp(
        queryID,"</a>")]
       session$sendCustomMessage(type='jsCode', list(value = 'alert("Finished calculation");'))
       ###Tables
-      output$BestHits =DT::renderDT(server=TRUE,escape = FALSE,{
+      output$BestHits =DT::renderDT(server=TRUE,{
         datatable(metadata(v$myOGRE)$sumDT,extensions = 'Buttons',callback = callback2,
                   escape=FALSE,
                   options = list(
@@ -149,9 +150,7 @@ shinyApp(
     output$barplot_summary <- renderPlot({metadata(v$myOGRE)$barplot_summary})
     })#end run
   }
-           
 )
-  
 
 callback <- JS( #for custom download button
   "var a = document.createElement('a');",
@@ -173,4 +172,5 @@ callback2 <- JS( #for custom download button
   "$('div.dwnldb').append(b);",
   "$('#downloadb').hide();"
 )
+return(SHRECApp)
 }#end SHREC
