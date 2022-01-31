@@ -10,8 +10,8 @@
 #' @param OGREDataSet A OGREDataSet.
 #' @return A OGREDataSet.
 #' @examples
-#' myOGRE=makeExampleOGREDataSet()
-#' myOGRE=loadAnnotations(myOGRE)
+#' myOGRE <- makeExampleOGREDataSet()
+#' myOGRE <- loadAnnotations(myOGRE)
 #' @export
 loadAnnotations <- function(OGREDataSet){
   OGREDataSet <- readQuery(OGREDataSet)
@@ -211,6 +211,7 @@ sumPlot <- function(OGREDataSet){
 #'elements can be plotted per track.
 #' @importFrom grDevices dev.off pdf
 #' @importFrom stats setNames
+#' @rawNamespace import(Gviz, except = tags)
 #' @param OGREDataSet A OGREDataSet.
 #' @param query A character vector of one or many query elements ID's (i.e. Gene ID's).
 #' @param gvizPlotsFolder A character pointing to the plot(s) output directory. 

@@ -57,7 +57,7 @@ NULL
 #' your query dataset is located.
 #' @param subjectFolder A \code{character} path pointing to the directory where 
 #' your subject dataset(s) are located.
-#' @import GenomicRanges methods ggplot2 Gviz S4Vectors
+#' @import GenomicRanges methods ggplot2 S4Vectors
 #' @importFrom assertthat assert_that
 #' @importFrom data.table data.table
 #' @return A OGREDataSet.
@@ -96,7 +96,7 @@ OGREDataSetFromDir <- function(queryFolder,subjectFolder){
 #' Builds a `OGREDataset` as a `GenomicRangesList` for storing and analysing
 #' datasets which can be added by `addDataSetFromHub()` or `addGRanges()`. 
 #' Use `BuildOGREDataSetFromDir` for adding dataSets stored as files.
-#' @import GenomicRanges methods ggplot2 Gviz S4Vectors
+#' @import GenomicRanges methods ggplot2 S4Vectors
 #' @importFrom assertthat assert_that
 #' @importFrom data.table data.table
 #' @return A OGREDataSet.

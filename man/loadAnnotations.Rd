@@ -22,6 +22,6 @@ metadata. OGRE searches for the query file in your query folder and any
 number of subject files in your subjects folder.
 }
 \examples{
-myOGRE=makeExampleOGREDataSet()
-myOGRE=loadAnnotations(myOGRE)
+myOGRE <- makeExampleOGREDataSet()
+myOGRE <- loadAnnotations(myOGRE)
 }

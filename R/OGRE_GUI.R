@@ -1,7 +1,9 @@
 #' SHREC SHiny interface for REgion Comparison
 #'
 #' `SHREC()` is a graphical user interface for OGRE
-#' @importFrom shiny shiny
+#' @import shiny 
+#' @importFrom DT renderDT JS
+#' @importFrom shinyFiles shinyDirButton
 #' @examples
 #' SHREC()
 #' @export
@@ -11,17 +13,8 @@ SHREC <- function(){
 shinyApp(
   ui <- shinyUI(
     navbarPage("OGRE",tags$head(tags$script(HTML('Shiny.addCustomMessageHandler("jsCode",function(message) {eval(message.value);});'))),
-      tabPanel("HowTo",
-               sidebarLayout(
-                 sidebarPanel(
-                   radioButtons("plotType", "Plot type",
-                                c("Scatter"="p", "Line"="l")
-                   )
-                 ),
-                 mainPanel(
-                   plotOutput("plot")
-                 )
-               )
+      tabPanel("Notes",
+
       ),
       tabPanel("1) Preparations",
                h3("Input from hard drive"),
@@ -59,7 +52,7 @@ shinyApp(
       )
     )
   ),
-  server = function(input, output,session) {
+  server <-  function(input, output,session) {
     v = reactiveValues(myOGRE=OGREDataSet(),
                        queryFolder=NULL, 
                        subjFolder=NULL,
@@ -155,25 +148,10 @@ shinyApp(
     ###Plots
     output$barplot_summary <- renderPlot({metadata(v$myOGRE)$barplot_summary})
     })#end run
-    
-    
-    output$plot <- renderPlot({
-      plot(cars, type=input$plotType)
-    })
-    
-    output$summary <- renderPrint({
-      summary(cars)
-    })
-    
-    output$table <- DT::renderDataTable({
-      DT::datatable(cars)
-    })
   }
            
 )
   
-
-}#end SHREC
 
 callback <- JS( #for custom download button
   "var a = document.createElement('a');",
@@ -195,3 +173,4 @@ callback2 <- JS( #for custom download button
   "$('div.dwnldb').append(b);",
   "$('#downloadb').hide();"
 )
+}#end SHREC
