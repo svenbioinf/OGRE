@@ -3,7 +3,7 @@
 #' `SHREC()` is a graphical user interface for OGRE
 #' @import shiny 
 #' @importFrom DT renderDT JS
-#' @importFrom shinyFiles shinyDirButton
+#' @importFrom shinyFiles shinyDirButton shinyDirChoose
 #' @return A shiny app object
 #' @examples
 #' SHREC()
