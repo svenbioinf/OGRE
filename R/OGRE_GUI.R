@@ -2,7 +2,7 @@
 #'
 #' `SHREC()` is a graphical user interface for OGRE
 #' @import shiny 
-#' @importFrom DT renderDT JS
+#' @importFrom DT renderDT datatable JS
 #' @importFrom shinyFiles shinyDirButton shinyDirChoose
 #' @examples
 #' SHREC()
@@ -109,6 +109,17 @@ runApp(shinyApp(
        queryID,"</a>")]
       session$sendCustomMessage(type='jsCode', list(value = 'alert("Finished calculation");'))
       ###Tables
+      callback <- JS( #for custom download button
+        "var a = document.createElement('a');",
+        "$(a).addClass('dt-button');",
+        "a.href = document.getElementById('download1').href;",
+        "a.download = '';",
+        "$(a).attr('target', '_blank');",
+        "$(a).text('Download(Full table)');",
+        "$('div.dwnld').append(a);",
+        "$('#download1').hide();"
+      )
+      
       output$BestHits =DT::renderDT(server=TRUE,{
         datatable(metadata(v$myOGRE)$sumDT,extensions = 'Buttons',callback = callback2,
                   escape=FALSE,
@@ -126,6 +137,16 @@ runApp(shinyApp(
         content = function(file) {
           fwrite(metadata(v$myOGRE)$sumDT, file)
         })
+      callback2 <- JS( #for custom download button
+        "var b = document.createElement('a');",
+        "$(b).addClass('dt-button');",
+        "b.href = document.getElementById('downloadb').href;",
+        "b.download = '';",
+        "$(b).attr('target', '_blank');",
+        "$(b).text('Download(Full table)');",
+        "$('div.dwnldb').append(b);",
+        "$('#downloadb').hide();"
+      )
     output$summtD = DT::renderDT(server=TRUE,{
       datatable(metadata(v$myOGRE)$detailDT,extensions = 'Buttons',selection=list(mode = 'multiple', selected = c(1)),callback = callback,
                 options = list(
@@ -149,26 +170,5 @@ runApp(shinyApp(
     })#end run
   }
 )
-
-)
-callback <- JS( #for custom download button
-  "var a = document.createElement('a');",
-  "$(a).addClass('dt-button');",
-  "a.href = document.getElementById('download1').href;",
-  "a.download = '';",
-  "$(a).attr('target', '_blank');",
-  "$(a).text('Download(Full table)');",
-  "$('div.dwnld').append(a);",
-  "$('#download1').hide();"
-)
-callback2 <- JS( #for custom download button
-  "var b = document.createElement('a');",
-  "$(b).addClass('dt-button');",
-  "b.href = document.getElementById('downloadb').href;",
-  "b.download = '';",
-  "$(b).attr('target', '_blank');",
-  "$(b).text('Download(Full table)');",
-  "$('div.dwnldb').append(b);",
-  "$('#downloadb').hide();"
 )
 }#end SHREC
