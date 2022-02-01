@@ -4,15 +4,13 @@
 #' @import shiny 
 #' @importFrom DT renderDT JS
 #' @importFrom shinyFiles shinyDirButton shinyDirChoose
-#' @return A shiny app object
 #' @examples
 #' SHREC()
 #' @export
-
 SHREC <- function(){
 
-SHRECApp <- shinyApp(
-  ui <- shinyUI(
+runApp(shinyApp(
+  ui = shinyUI(
     navbarPage("OGRE",tags$head(tags$script(HTML('Shiny.addCustomMessageHandler("jsCode",function(message) {eval(message.value);});'))),
       tabPanel("Notes",
 
@@ -20,10 +18,10 @@ SHRECApp <- shinyApp(
       tabPanel("1) Preparations",
                h3("Input from hard drive"),
                hr(),
-               shinyDirButton('queryFolder', 'Select query folder', 'Please select a query folder', FALSE),
+               shinyFiles::shinyDirButton('queryFolder', 'Select query folder', 'Please select a query folder', FALSE),
                textInput("queryFolderText",label=NULL,
                 value=file.path(system.file('extdata', package = 'OGRE'),"query")),
-               shinyDirButton("subjFolder","Select subject folder","Please select a subject folder",FALSE),
+               shinyFiles::shinyDirButton("subjFolder","Select subject folder","Please select a subject folder",FALSE),
                textInput("subjFolderText",label=NULL,
                 value=file.path(system.file('extdata', package = 'OGRE'),"subject")),
                h3("GViz plot settings"),
@@ -59,8 +57,8 @@ SHRECApp <- shinyApp(
                        subjFolder=NULL,
                        queriesToPlot=NULL)
     
-    shinyDirChoose(input,id='queryFolder',roots = c(root = '/'))
-    shinyDirChoose(input,id='subjFolder',roots = c(root = '/'))
+    shinyFiles::shinyDirChoose(input,id='queryFolder',roots = c(root = '/'))
+    shinyFiles::shinyDirChoose(input,id='subjFolder',roots = c(root = '/'))
     observeEvent(input$queryFolder,{updateTextInput(session,"queryFolderText",
       value=parseDirPath(roots = c(root = '/'),input$queryFolder))
       v$queryFolder <- parseDirPath(roots = c(root = '/'),input$queryFolder)
@@ -152,6 +150,7 @@ SHRECApp <- shinyApp(
   }
 )
 
+)
 callback <- JS( #for custom download button
   "var a = document.createElement('a');",
   "$(a).addClass('dt-button');",
@@ -172,5 +171,4 @@ callback2 <- JS( #for custom download button
   "$('div.dwnldb').append(b);",
   "$('#downloadb').hide();"
 )
-return(SHRECApp)
 }#end SHREC
