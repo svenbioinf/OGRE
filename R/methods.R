@@ -274,8 +274,8 @@ AnnotationTrack(start=tmp$subjStart,end = tmp$subjEnd,chromosome=tmp$subjChr,
     itrack <-IdeogramTrack(genome="hg38",chromosome=chr)#ideogram track (chromosome bands etc)
     gtrack<-GenomeAxisTrack()
     queryGR<-OGREDataSet[[1]][mcols(OGREDataSet[[1]])$ID==q]
-    from <- start(queryGR)+plotExtend[1]  #add 300bp left and righ as plotWindow
-    to <- end(queryGR)+plotExtend[2]
+    from <- start(queryGR)+extendPlot[1]  #add 300bp left and righ as plotWindow
+    to <- end(queryGR)+extendPlot[2]
     #Gviz query track
     regionLabels<-mcols(queryGR)[[trackRegionLabels[1]]]
     queryTrack<-AnnotationTrack(range=queryGR,name="Query",fill="red",arrowHeadWidth=30,
