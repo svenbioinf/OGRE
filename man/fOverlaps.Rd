@@ -4,13 +4,16 @@
 \alias{fOverlaps}
 \title{Find overlaps}
 \usage{
-fOverlaps(OGREDataSet, selfHits = FALSE)
+fOverlaps(OGREDataSet, selfHits = FALSE, ignoreStrand = TRUE)
 }
 \arguments{
 \item{OGREDataSet}{A OGREDataSet.}
 
 \item{selfHits}{\code{logical} if FALSE(default) ignores self hits of
-identical regions within datasets.}
+identical regions (with identical IDs) within datasets.}
+
+\item{ignoreStrand}{\code{logical} If TRUE (default) two regions with
+overlapping locations on different strands are considered an overlap hit.}
 }
 \value{
 OGREDataSet.
@@ -19,7 +22,8 @@ OGREDataSet.
 Finds all overlaps between query and subject(s) and stores each hit (overlap)
 in data table \code{detailDT}. Data table \code{sumDT} shows all
 overlaps of a certain subject type for all query elements. By default also
-partially overlaps are reported.
+partially overlaps are reported. Overlap calculation is done using
+\code{GenomicRanges::findOverlaps()} implementation.
 }
 \examples{
 myOGRE <- makeExampleOGREDataSet()

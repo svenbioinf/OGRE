@@ -85,24 +85,27 @@ readSubject=function(OGREDataSet){
 #' Finds all overlaps between query and subject(s) and stores each hit (overlap)
 #' in data table `detailDT`. Data table `sumDT` shows all
 #' overlaps of a certain subject type for all query elements. By default also 
-#' partially overlaps are reported.
+#' partially overlaps are reported. Overlap calculation is done using 
+#' \code{GenomicRanges::findOverlaps()} implementation.
 #'
 #' @param OGREDataSet A OGREDataSet.
 #' @param selfHits \code{logical} if FALSE(default) ignores self hits of 
-#' identical regions within datasets. 
+#' identical regions (with identical IDs) within datasets. 
+#' @param ignoreStrand \code{logical} If TRUE (default) two regions with 
+#' overlapping locations on different strands are considered an overlap hit.
 #' @return OGREDataSet.
 #' @examples
 #' myOGRE <- makeExampleOGREDataSet()
 #' myOGRE <- loadAnnotations(myOGRE)
 #' myOGRE <- fOverlaps(myOGRE)
 #' @export
-fOverlaps <- function(OGREDataSet,selfHits=FALSE){
+fOverlaps <- function(OGREDataSet,selfHits=FALSE,ignoreStrand=TRUE){
   queryID <- subjID <- subjType <- . <-  NULL
   detailDT <- data.table() #data table to store all overlaps for query vs all subjects
   metadata(OGREDataSet)$subjectNames <- names(
     OGREDataSet[seq(2,length(OGREDataSet))])
   for(subj in metadata(OGREDataSet)$subjectNames){
-    ol <- findOverlaps(OGREDataSet[[1]],OGREDataSet[[subj]])
+    ol <- findOverlaps(OGREDataSet[[1]],OGREDataSet[[subj]],ignore.strand=ignoreStrand)
     ol <- data.table(q=queryHits(ol),s=mcols(OGREDataSet[[subj]])[subjectHits(ol),1])
     if(length(ol)==0){ #if no overlap hits skip to next subj
       message("No overlap found for: ",subj)
