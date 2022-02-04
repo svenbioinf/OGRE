@@ -9,7 +9,8 @@ gvizPlot(
   query,
   gvizPlotsFolder = metadata(OGREDataSet)$gvizPlotsFolder,
   trackRegionLabels = setNames(rep("ID", length(OGREDataSet)), names(OGREDataSet)),
-  showPlot = FALSE
+  showPlot = FALSE,
+  extendPlot = c(-300, 300)
 )
 }
 \arguments{
@@ -22,15 +23,23 @@ If not supplied a folder is automatically generated and can be accessed by
 \code{metatdata(OGREDataSet)$gvizPlotsFolder}.}
 
 \item{trackRegionLabels}{A labeled character vector that defines the type of
-label that is displayed for subject elements. Values represent type of label
-and vector labels define the type of subject element.
-Value "ID" and label "genes" would use the "ID" column of your genes dataset
-as labels. Subject elements not defined in this vector are plotted without
-track labels.}
+label that is displayed for query and subject elements during plotting.
+Vector values represent the type of label and vector labels define the type
+of subject element. In the following example
+\code{setNames(c("ID","name"),c("genes","CGI"))}
+Value "ID" and label "genes" would annotate your genes with IDs taken from the
+ID column of your dataset. Datasets not defined in this vector are
+plotted without track labels.}
 
 \item{showPlot}{\code{logical} If \code{FALSE}(default) plots are only saved
 to \code{gvizPlotsFolder}. If \code{TRUE}
 plots are additionally send to the plotting window.}
+
+\item{extendPlot}{\code{int vector} Integer vector of length two that extends
+the plot window to the left or right by adding the first value to query start
+and the second value to query end coordinates(bp). e.g. \code{c(-1000,1000)}
+zooms out, \code{c(1000,-1000)} zooms in and \code{c(-1000,0)} shifts the plot
+window to the left.}
 }
 \value{
 OGREDataSet.

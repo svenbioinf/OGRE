@@ -221,11 +221,18 @@ sumPlot <- function(OGREDataSet){
 #' to `gvizPlotsFolder`. If \code{TRUE}
 #' plots are additionally send to the plotting window.
 #' @param trackRegionLabels A labeled character vector that defines the type of 
-#' label that is displayed for subject elements. Values represent type of label 
-#' and vector labels define the type of subject element. 
-#' Value "ID" and label "genes" would use the "ID" column of your genes dataset 
-#' as labels. Subject elements not defined in this vector are plotted without
-#' track labels.
+#' label that is displayed for query and subject elements during plotting. 
+#' Vector values represent the type of label and vector labels define the type 
+#' of subject element. In the following example 
+#' \code{setNames(c("ID","name"),c("genes","CGI"))}
+#' Value "ID" and label "genes" would annotate your genes with IDs taken from the
+#' ID column of your dataset. Datasets not defined in this vector are 
+#' plotted without track labels.
+#' @param extendPlot \code{int vector} Integer vector of length two that extends
+#' the plot window to the left or right by adding the first value to query start
+#' and the second value to query end coordinates(bp). e.g. \code{c(-1000,1000)}
+#' zooms out, \code{c(1000,-1000)} zooms in and \code{c(-1000,0)} shifts the plot
+#' window to the left.
 #' @return OGREDataSet.
 #' @examples
 #' myOGRE <- makeExampleOGREDataSet()
@@ -236,7 +243,7 @@ sumPlot <- function(OGREDataSet){
 gvizPlot <- function(OGREDataSet,query,
  gvizPlotsFolder = metadata(OGREDataSet)$gvizPlotsFolder,
  trackRegionLabels =setNames(rep("ID",length(OGREDataSet)),names(OGREDataSet)),
- showPlot=FALSE){
+ showPlot=FALSE,extendPlot=c(-300,300)){
   queryID <- subjType <-  NULL
   for(q in query){
     message(paste0("Plotting query: ",q))
@@ -267,9 +274,8 @@ AnnotationTrack(start=tmp$subjStart,end = tmp$subjEnd,chromosome=tmp$subjChr,
     itrack <-IdeogramTrack(genome="hg38",chromosome=chr)#ideogram track (chromosome bands etc)
     gtrack<-GenomeAxisTrack()
     queryGR<-OGREDataSet[[1]][mcols(OGREDataSet[[1]])$ID==q]
-    from <- start(queryGR)-300  #add 300bp left and righ as plotWindow
-    to <- end(queryGR)+300
-    plotWindow<-GRanges(seqnames=chr,ranges=IRanges::IRanges(start = from, end = to))
+    from <- start(queryGR)+plotExtend[1]  #add 300bp left and righ as plotWindow
+    to <- end(queryGR)+plotExtend[2]
     #Gviz query track
     regionLabels<-mcols(queryGR)[[trackRegionLabels[1]]]
     queryTrack<-AnnotationTrack(range=queryGR,name="Query",fill="red",arrowHeadWidth=30,
@@ -401,7 +407,8 @@ addDataSetFromHub <- function(OGREDataSet,dataSet,type){
 #' @param OGREDataSet An OGREDataSet
 #' @param dataSet A GRanges object. Each region needs chromosome, start, end and
 #' strand information. A unique ID and a name column must be present in the 
-#' `GenomicRanges` object metadata.
+#' `GenomicRanges` object metadata. Avoid different chromosome naming 
+#' conventions i.e. (chr1, CHR1, 1, I) among all datasets
 #' @param type Type of dataSet, must be either query or subject. If query the
 #' dataSet will be added as query and at the first position of OGREDataSet. 
 #' @return OGREDataSet.

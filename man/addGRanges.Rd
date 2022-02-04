@@ -11,7 +11,8 @@ addGRanges(OGREDataSet, dataSet, type)
 
 \item{dataSet}{A GRanges object. Each region needs chromosome, start, end and
 strand information. A unique ID and a name column must be present in the
-\code{GenomicRanges} object metadata.}
+\code{GenomicRanges} object metadata. Avoid different chromosome naming
+conventions i.e. (chr1, CHR1, 1, I) among all datasets}
 
 \item{type}{Type of dataSet, must be either query or subject. If query the
 dataSet will be added as query and at the first position of OGREDataSet.}

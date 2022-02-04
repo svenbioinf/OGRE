@@ -13,7 +13,9 @@ runApp(shinyApp(
   ui = shinyUI(
     navbarPage("OGRE",tags$head(tags$script(HTML('Shiny.addCustomMessageHandler("jsCode",function(message) {eval(message.value);});'))),
       tabPanel("Notes",
-
+ #Please make sure your datasets strand information uses format ('+' '-' '*')
+ #Not (1,-1,minus,plus)
+ #Originate from a common genome version and build. HG19 and HG38 coordinates can differ slightly.
       ),
       tabPanel("1) Preparations",
                h3("Input from hard drive"),
