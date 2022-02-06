@@ -203,6 +203,12 @@ Use `GenomeInfoDb::seqinfo()` on any GRanges object to get/set chromosome inform
 
 Use `S4Vectors::mcols()` on any GRanges object to get/set metadata information
 
+##    What type of overlaps are reported?
+
+Both, partial overlap, where only a part of two (or more) regions are overlapping
+and complete overlap, where one region is completely overlapped by another are
+reported.
+
 #   Session info
 
 ```{r sessionInfo}
