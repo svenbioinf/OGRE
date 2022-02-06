@@ -6,7 +6,7 @@ abstract: >
   OGRE calculates overlap between user defined annotated genomic region
   datasets. Any regions can be supplied such as public annotations (genes),
   genetic variation (SNPs, mutations), regulatory elements (TFBS, promoters,
-  CpG islands) and basically all  types of NGS output from sequencing
+  CpG islands) and basically all types of NGS output from sequencing
   experiments. After overlap calculation, key numbers help analyse the extend
   of overlaps which can also be visualized at a genomic level.
   OGRE package version: `r packageVersion("OGRE")`
