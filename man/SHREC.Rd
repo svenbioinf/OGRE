@@ -9,6 +9,3 @@ SHREC()
 \description{
 \code{SHREC()} is a graphical user interface for OGRE
 }
-\examples{
-SHREC()
-}

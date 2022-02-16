@@ -85,7 +85,9 @@ OGREDataSetFromDir <- function(queryFolder,subjectFolder){
   metadata(OGREDataSet)$detailDT <- NULL
   metadata(OGREDataSet)$sumDT <- NULL
   metadata(OGREDataSet)$barplot_summary <- NULL
+  metadata(OGREDataSet)$barplot_summary_log <- NULL
   metadata(OGREDataSet)$barplot_summary_dt <- NULL
+  metadata(OGREDataSet)$quickDT <- NULL
   metadata(OGREDataSet)$itracks <- list()
   metadata(OGREDataSet)$aH <- NULL #annotation hub
   return(OGREDataSet)
@@ -117,7 +119,9 @@ OGREDataSet <- function(){
   metadata(OGREDataSet)$subjectNames <- NULL
   metadata(OGREDataSet)$detailDT <- NULL
   metadata(OGREDataSet)$sumDT <- NULL
+  metadata(OGREDataSet)$quickDT <- NULL
   metadata(OGREDataSet)$barplot_summary <- NULL
+  metadata(OGREDataSet)$barplot_summary_log <- NULL
   metadata(OGREDataSet)$barplot_summary_dt <- NULL
   metadata(OGREDataSet)$itracks <- list()
   metadata(OGREDataSet)$aH <- NULL #annotation hub

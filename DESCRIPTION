@@ -18,7 +18,8 @@ Roxygen: list(markdown = TRUE)
 VignetteBuilder: knitr
 RoxygenNote: 7.1.2
 Imports: GenomicRanges, methods, data.table, assertthat, ggplot2, Gviz, IRanges,
-    AnnotationHub, grDevices, stats, GenomeInfoDb, shiny, shinyFiles, DT
+    AnnotationHub, grDevices, stats, GenomeInfoDb, shiny, shinyFiles, DT,
+    rtracklayer
 Depends: R (>= 4.1.0), S4Vectors
 Suggests: 
     testthat (>= 3.0.0),

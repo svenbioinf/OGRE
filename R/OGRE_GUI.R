@@ -4,8 +4,6 @@
 #' @import shiny 
 #' @importFrom DT renderDT datatable JS
 #' @importFrom shinyFiles shinyDirButton shinyDirChoose
-#' @examples
-#' SHREC()
 #' @export
 SHREC <- function(){
 
@@ -17,15 +15,20 @@ runApp(shinyApp(
  #Not (1,-1,minus,plus)
  #Originate from a common genome version and build. HG19 and HG38 coordinates can differ slightly.
       ),
-      tabPanel("1) Preparations",
+      tabPanel("Preparations",
                h3("Input from hard drive"),
                hr(),
                shinyFiles::shinyDirButton('queryFolder', 'Select query folder', 'Please select a query folder', FALSE),
                textInput("queryFolderText",label=NULL,
-                value=file.path(system.file('extdata', package = 'OGRE'),"query")),
+               value=file.path(system.file('extdata', package = 'OGRE'),"query")),
                shinyFiles::shinyDirButton("subjFolder","Select subject folder","Please select a subject folder",FALSE),
                textInput("subjFolderText",label=NULL,
                 value=file.path(system.file('extdata', package = 'OGRE'),"subject")),
+               h3("Manipulate datasets"),
+               hr(),
+               textAreaInput("subsetIdentifier", "Subset dataset by ID", rows = 3,value = "ID1\nID2\n..."),
+               textInput("subsetName","Name of dataset to subset:","myDataset"),
+               
                h3("GViz plot settings"),
                hr(),
                radioButtons("queriesToPlot", h5("Queries to plot"),
@@ -37,10 +40,10 @@ runApp(shinyApp(
                  value="ENSG00000269011\nENSG00000142168",resize="none")
                
       ),
-      tabPanel("3) Run",
+      tabPanel("Run",
                actionButton("runOGRE", "Run OGRE")
       ),
-      tabPanel("Graphs",
+      tabPanel("Charts",
        plotOutput(outputId = "barplot_summary")
                
       ),
@@ -50,6 +53,14 @@ runApp(shinyApp(
                
       ),
       tabPanel("Plots",
+       sidebarLayout(
+         sidebarPanel(
+           DT::DTOutput("quickDT")
+         ),
+         mainPanel(
+           plotOutput("distPlot")
+         )
+       )
       )
     )
   ),
@@ -78,8 +89,27 @@ runApp(shinyApp(
     observeEvent(input$queriesToPlot, {
       v$queriesToPlot <- input$queriesToPlot
     })
-    observeEvent(input$runOGRE, {
+    observeEvent(input$runOGRE, { #start main processing-----------------------
       session$sendCustomMessage(type='jsCode', list(value = 'alert("Started calculation");'))
+      
+      #check if input is as file/annotationHub
+      if(!is.null(v$queryFolder)&!is.null(v$queryFolder)){#if dir supplied
+        #read folders
+        v$myOGRE <- OGREDataSetFromDir(queryFolder = v$queryFolder,
+                                       subjectFolder = v$subjFolder)
+        v$myOGRE <- loadAnnotations(v$myOGRE)
+        
+        
+      }
+      else{
+        
+      }
+      #check if user required subsetting
+      if(input$subsetIdentifier!="ID1\nID2\n..."){
+        subsetIdentifier <- strsplit(input$subsetIdentifier,split = "\n")[[1]]
+        v$myOGRE <- subsetGRanges(v$myOGRE,subsetIdentifier,input$subsetName)
+      }
+      #number of queries to plot after processing
       getQueriesToPlot <- function(OGREDataSet,queriesToPlot){
         if(queriesToPlot==1){
           return(mcols(OGREDataSet[[1]])$ID)
@@ -89,26 +119,19 @@ runApp(shinyApp(
           return(strsplit(input$queriesToPlotCustom,split = "\n")[[1]])
         }
       }
-      if(!is.null(v$queryFolder)&!is.null(v$queryFolder)){#if dir supplied
-        #read folders
-        v$myOGRE <- OGREDataSetFromDir(queryFolder = v$queryFolder,
-                                       subjectFolder = v$subjFolder)
-        v$myOGRE <- loadAnnotations(v$myOGRE)
-        
         v$myOGRE <- fOverlaps(v$myOGRE)
         v$myOGRE <- sumPlot(v$myOGRE)
         v$myOGRE <- gvizPlot(v$myOGRE,getQueriesToPlot(v$myOGRE,v$queriesToPlot),
                      showPlot = FALSE,
                      trackRegionLabels = setNames(c("name","name"),c("genes","CGI")))
-        
-      }
-      else{
-        
-      }
+      addResourcePath("my_test_prefix", metadata(v$myOGRE)$gvizPlotsFolder)
       #link plots to QueryIDs
-      metadata(v$myOGRE)$sumDT[,queryID:=paste0("<a href='","file:///",
-       metadata(v$myOGRE)$gvizPlotsFolder,"/",queryID,".pdf","'>",
-       queryID,"</a>")]
+      # metadata(v$myOGRE)$sumDT[,queryID:=paste0("<a href='","file:///",
+      #  metadata(v$myOGRE)$gvizPlotsFolder,"/",queryID,".pdf","'>",
+      #  queryID,"</a>")]
+      metadata(v$myOGRE)$sumDT[,queryID:=paste0("<a href='",
+                                                metadata(v$myOGRE)$gvizPlotsFolder,"/",queryID,".pdf","'>",
+                                                queryID,"</a>")]
       session$sendCustomMessage(type='jsCode', list(value = 'alert("Finished calculation");'))
       ###Tables
       callback <- JS( #for custom download button
@@ -167,8 +190,22 @@ runApp(shinyApp(
         fwrite(metadata(v$myOGRE)$detailDT, file)
       }
     )
-    ###Plots
+    ###Graphs
     output$barplot_summary <- renderPlot({metadata(v$myOGRE)$barplot_summary})
+    ###Plot
+    output$quickDT = DT::renderDT({
+      datatable(metadata(v$myOGRE)$quickDT,extensions = 'Buttons',escape = FALSE,
+                options = list(
+                  dom = 'Bfrtip',
+                  autoWidth=FALSE,
+                  scrollX = TRUE,
+                  scrollY="40vh",
+                  paging = FALSE,
+                  #columnDefs = list(list(width = '50', targets = c(1,2,3))),
+                  buttons = c('copy', 'csv', 'excel', 'pdf', 'print')
+                ) #options = list(scrollY="300px",scrollX="300px", pageLength = 100, autoWidth = TRUE))
+      )
+    },server=FALSE)
     })#end run
   }
 )

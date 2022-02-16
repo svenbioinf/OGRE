@@ -137,6 +137,10 @@ fOverlaps <- function(OGREDataSet,selfHits=FALSE,ignoreStrand=TRUE){
   assert_that(nrow(metadata(OGREDataSet)$sumDT)!=0,
               msg="No overlaps found for any subjects!")
   metadata(OGREDataSet)$detailDT <- detailDT
+  metadata(OGREDataSet)$quickDT <- detailDT[,c("queryID","subjType")]
+  metadata(OGREDataSet)$quickDT <- data.table::dcast(data=metadata(OGREDataSet)$quickDT, 
+                          queryID ~ subjType,value.var = "subjType",fun=length)
+  
   return(OGREDataSet)
 }
 
@@ -173,7 +177,6 @@ sumPlot <- function(OGREDataSet){
                   paste0("Queries with overlaps in all subject types: ",
                          query_full," (",round(query_full/query_N*100),"%)"))
   dtbarplot$col<-"steelblue2"
-  metadata(OGREDataSet)$barplot_summary_dt <- dtbarplot
   temp<-vapply(metadata(OGREDataSet)$subjectNames,function(x){
     length(unique(metadata(OGREDataSet)$detailDT[
       metadata(OGREDataSet)$detailDT$subjType==x,][["queryID"]]))},integer(1))
@@ -188,21 +191,36 @@ sumPlot <- function(OGREDataSet){
   dtbarplotDetailed<-rbind(dtbarplot,temp,subjPerQuery, use.names=FALSE)
   dtbarplotDetailed$sequence<-seq(dim(dtbarplotDetailed)[1],1)
   dtbarplotDetailed$xtext<-dtbarplotDetailed$sequence+0.55
-  dtbarplotDetailed$query<-log2(dtbarplotDetailed$query+1)#add +1 to avoid log2(1)=0 and log2(0)=-inf
-  metadata(OGREDataSet)$barplot_summary_dt <- dtbarplotDetailed
   metadata(OGREDataSet)$barplot_summary <-
     ggplot(dtbarplotDetailed, aes(x = sequence, y =query,fill=col)) +
       geom_bar(stat = "identity", width = 0.3) +
       scale_fill_manual(guide="none",values = c("steelblue2" = "steelblue2",
                                                "steelblue3" = "steelblue3",
                                                "steelblue4" = "steelblue4"))+
-      coord_flip() +labs(x = "", y = "Log2(N)") +theme_bw() +  theme_classic() +
+      coord_flip() +labs(x = "", y = "N") +theme_bw() +  theme_classic() +
       theme(axis.text.y = element_blank(), axis.ticks.y = element_blank()) +
       geom_text(aes(x = xtext, y = 0, label = lab),size=7,hjust = 0, vjust = 1)+
-    guides(size = FALSE)
+    guides(size = FALSE)+theme(axis.text = element_text(size = 14)) 
     ggsave(plot=metadata(OGREDataSet)$barplot_summary,
+         path=metadata(OGREDataSet)$outputFolder,width = 30,
+         filename="Barplot_Summary.png",height = 20,dpi = 400,units = "cm")
+  dtbarplotDetailed$queryLog<-log2(dtbarplotDetailed$query+1)#add +1 to avoid log2(1)=0 and log2(0)=-inf
+  metadata(OGREDataSet)$barplot_summary_dt <- dtbarplotDetailed
+  metadata(OGREDataSet)$barplot_summary_log2 <-
+    ggplot(dtbarplotDetailed, aes(x = sequence, y =queryLog,fill=col)) +
+    geom_bar(stat = "identity", width = 0.3) +
+    scale_fill_manual(guide="none",values = c("steelblue2" = "steelblue2",
+                                              "steelblue3" = "steelblue3",
+                                              "steelblue4" = "steelblue4"))+
+    coord_flip() +labs(x = "", y = "Log2(N)") +theme_bw() +  theme_classic() +
+    theme(axis.text.y = element_blank(), axis.ticks.y = element_blank()) +
+    geom_text(aes(x = xtext, y = 0, label = lab),size=7,hjust = 0, vjust = 1)+
+    guides(size = FALSE)+theme(axis.text = element_text(size = 14))
+    ggsave(plot=metadata(OGREDataSet)$barplot_summary_log,
            path=metadata(OGREDataSet)$outputFolder,width = 30,
-           filename="Barplot_Summary.png",height = 20,dpi = 400,units = "cm")
+           filename="Barplot_Summary_log.png",height = 20,dpi = 400,units = "cm")
+
+
     return(OGREDataSet)
 }
 
@@ -318,13 +336,16 @@ AnnotationTrack(start=tmp$subjStart,end = tmp$subjEnd,chromosome=tmp$subjChr,
 #'   \item TFBS - Transcription Factor Binding Sites conserved from HG19 UCSC
 #'   For additional information use:
 #'   `getInfoOnIds(AnnotationHub(), "AH5090")`
+#'   \item Promoters - Promoter and flanking regions from HG19 Ensembl (Note: 
+#'   This annotation is currently not included in AnnotationHub and is therefore
+#'   downloaded from Ensembl's ftp site)
 #' }
 #' @return \code{character} vector.
 #' @examples
 #' listPredefinedDataSets()
 #' @export
 listPredefinedDataSets <- function(){
-  return(c("protCodingGenes","CGI","SNP","TFBS"))
+  return(c("protCodingGenes","CGI","SNP","TFBS","Promoters"))
 }
 
 #' Add dataSet from AnnotationHub
@@ -335,9 +356,11 @@ listPredefinedDataSets <- function(){
 #' dataSets of `listPredefinedDataSets()` to a OGREDataSet.Those are taken from 
 #' AnnotationHub and are ready to use for OGRE. Additional information on 
 #' dataSets can be found here \code{\link{listPredefinedDataSets}}. 
+#' @importFrom data.table fread
 #' @importFrom assertthat assert_that
 #' @importFrom AnnotationHub AnnotationHub
 #' @importFrom GenomeInfoDb keepStandardChromosomes seqlevelsStyle dropSeqlevels
+#' @importFrom rtracklayer import.gff
 #' @param OGREDataSet OGREDataSet
 #' @param dataSet \code{character} Name of one predefined dataSets to add as
 #' query or subject to a OGREDataSet. Possible dataSets can be show with
@@ -383,7 +406,16 @@ addDataSetFromHub <- function(OGREDataSet,dataSet,type){
          mcols(x)$name <- gsub("V\\$","",mcols(x)$name)
          mcols(x)$ID <- mcols(x)$name
          mcols(x)$ID <- make.unique(gsub("_.*","",mcols(x)$ID))
-         }
+         },
+         Promoters={
+           x <- as.data.table(rtracklayer::import.gff("http://ftp.ensembl.org/pub/grch37/current/regulation/homo_sapiens/homo_sapiens.GRCh37.Regulatory_Build.regulatory_features.20201218.gff.gz"))
+           x <- x[type%in%c("promoter","promoter_flanking_region"),c("seqnames","start","end","ID")]
+           x[,name:=sub(".*:", "", ID)  ]
+           x <- makeGRangesFromDataFrame(x,keep.extra.columns = TRUE)
+           x <- GenomeInfoDb::keepStandardChromosomes(x,"Homo_sapiens",
+                                                      pruning.mode="coarse")
+           GenomeInfoDb::seqlevelsStyle(x) <- "Ensembl"
+           }
   )
   #MT removed for compatibility with hg19,MT(hg19) differs from MT(GRCH37) see:
   #https://gatk.broadinstitute.org/hc/en-us/articles/360035890711?id=23390
@@ -477,4 +509,57 @@ makeExampleGRanges <- function()
              Rle(strand(c("-", "+", "*", "+", "-")), c(1, 2, 2, 3, 2)),
              ID=seq_len(10), name=paste0("gene",seq_len(10)))
   return(myGRanges)
+}
+#' Subset a GRanges object
+#'
+#' Subsets a GRanges object with reference to it's ID column using a ID vector.
+#' @importFrom GenomicRanges GRanges
+#' @param OGREDataSet An OGREDataSet
+#' @param IDs \code{character vector} with IDs used to subset the GRanges object
+#' defined in \code{name}
+#' @param name \code{character} Name of the GRanges object for subsetting. One of 
+#' the GRanges objects in a \code{OGREDataSet}
+#' @return OGREDataSet.
+#' @examples
+#' myOGRE <- makeExampleOGREDataSet()
+#' myOGRE <- loadAnnotations(myOGRE)
+#' myOGRE <- subsetGRanges(myOGRE,c("ENSG00000142168","ENSG00000256715"),"genes")
+#' @export
+subsetGRanges <- function(OGREDataSet,IDs,name)
+{
+  OGREDataSet[[name]] <- OGREDataSet[[name]][mcols(OGREDataSet[[name]])$ID%in%IDs,]
+  return(OGREDataSet)
+}
+
+#' Extend a GRanges object
+#'
+#' Extend(shrink) ranges of a GRanges object.
+#' @importFrom GenomicRanges GRanges
+#' @param OGREDataSet  An OGREDataSet
+#' @param name \code{character} Name of the GRanges object for extending 
+#' @param upstream \code{int} (positive or negative number)
+#' @param downstream \code{int} (positive or negative number)
+#' @return OGREDataSet
+#' @examples
+#' myOGRE <- makeExampleOGREDataSet()
+#' myOGRE <- loadAnnotations(myOGRE)
+#' #extend range by shifting start 100 bp in upstream direction
+#' myOGRE <- extendGRanges(myOGRE,"genes",upstream=100)
+#' #shrinking range by shifting end 100 bp in upstream direction
+#' myOGRE <- extendGRanges(myOGRE,"genes",downstream=-100)
+#' #shrinking range by shifting from both sides to the center
+#' myOGRE <- extendGRanges(myOGRE,"genes",upstream=-100,downstream=-100)
+#' myOGRE <- subsetGRanges(myOGRE,c("ENSG00000142168","ENSG00000256715"),"genes")
+#' @export
+extendGRanges <- function(OGREDataSet,name, upstream=0, downstream=0)     
+  #taken from https://support.bioconductor.org/p/78652/
+{
+  if (any(strand(OGREDataSet[[name]]) == "*"))
+    warning("'*' ranges were treated as '+'")
+  on_plus <- strand(OGREDataSet[[name]]) == "+" | strand(OGREDataSet[[name]]) == "*"
+  new_start <- start(OGREDataSet[[name]]) - ifelse(on_plus, upstream, downstream)
+  new_end <- end(OGREDataSet[[name]]) + ifelse(on_plus, downstream, upstream)
+  ranges(OGREDataSet[[name]]) <- IRanges(new_start, new_end)
+  OGREDataSet[[name]] <- trim(OGREDataSet[[name]])
+  return(OGREDataSet)
 }

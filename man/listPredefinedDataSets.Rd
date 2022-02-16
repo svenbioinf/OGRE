@@ -27,6 +27,9 @@ For additional information use:
 \item TFBS - Transcription Factor Binding Sites conserved from HG19 UCSC
 For additional information use:
 \code{getInfoOnIds(AnnotationHub(), "AH5090")}
+\item Promoters - Promoter and flanking regions from HG19 Ensembl (Note:
+This annotation is currently not included in AnnotationHub and is therefore
+downloaded from Ensembl's ftp site)
 }
 }
 \examples{
