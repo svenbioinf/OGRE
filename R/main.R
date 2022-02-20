@@ -75,11 +75,13 @@ OGREDataSetFromDir <- function(queryFolder,subjectFolder){
   OGREDataSet <- GRangesList()
   metadata(OGREDataSet)$queryFolder <- queryFolder
   metadata(OGREDataSet)$subjectFolder <- subjectFolder
+  suppressWarnings(
   dir.create(file.path(dirname(metadata(OGREDataSet)$queryFolder),"output"),
-             recursive=TRUE) #move up one level
+             recursive=TRUE)) #dirname returns parentfolder
   metadata(OGREDataSet)$outputFolder <- file.path(dirname(metadata(OGREDataSet)$queryFolder), "output") 
+  suppressWarnings(
   dir.create(file.path(dirname(metadata(OGREDataSet)$outputFolder),"gvizPlots"),
-             recursive=TRUE) #move up one level
+             recursive=TRUE))
   metadata(OGREDataSet)$gvizPlotsFolder <- file.path(dirname(metadata(OGREDataSet)$outputFolder), "gvizPlots") 
   metadata(OGREDataSet)$subjectNames <- NULL
   metadata(OGREDataSet)$detailDT <- NULL
@@ -87,7 +89,10 @@ OGREDataSetFromDir <- function(queryFolder,subjectFolder){
   metadata(OGREDataSet)$barplot_summary <- NULL
   metadata(OGREDataSet)$barplot_summary_log <- NULL
   metadata(OGREDataSet)$barplot_summary_dt <- NULL
+  metadata(OGREDataSet)$hist <- NULL
+  metadata(OGREDataSet)$hist_dt <- NULL
   metadata(OGREDataSet)$quickDT <- NULL
+  metadata(OGREDataSet)$summaryDT <- list()
   metadata(OGREDataSet)$itracks <- list()
   metadata(OGREDataSet)$aH <- NULL #annotation hub
   return(OGREDataSet)
@@ -110,11 +115,13 @@ OGREDataSet <- function(){
   OGREDataSet <- GRangesList()
   metadata(OGREDataSet)$queryFolder <- NULL
   metadata(OGREDataSet)$subjectFolder <- NULL
+  suppressWarnings(
   dir.create(file.path(getwd(), "OGRE/output"), #create default dir
-             recursive = TRUE)
+             recursive = TRUE))
   metadata(OGREDataSet)$outputFolder <- file.path(getwd(), "OGRE/output")
+  suppressWarnings(
   dir.create(file.path(dirname(metadata(OGREDataSet)$outputFolder),"gvizPlots"),
-             recursive = TRUE) 
+             recursive = TRUE))
   metadata(OGREDataSet)$gvizPlotsFolder <- file.path(dirname(metadata(OGREDataSet)$outputFolder), "gvizPlots") 
   metadata(OGREDataSet)$subjectNames <- NULL
   metadata(OGREDataSet)$detailDT <- NULL
@@ -123,6 +130,9 @@ OGREDataSet <- function(){
   metadata(OGREDataSet)$barplot_summary <- NULL
   metadata(OGREDataSet)$barplot_summary_log <- NULL
   metadata(OGREDataSet)$barplot_summary_dt <- NULL
+  metadata(OGREDataSet)$hist <- NULL
+  metadata(OGREDataSet)$hist_dt <- NULL
+  metadata(OGREDataSet)$summaryDT <- list()
   metadata(OGREDataSet)$itracks <- list()
   metadata(OGREDataSet)$aH <- NULL #annotation hub
   return(OGREDataSet)

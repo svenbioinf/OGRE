@@ -200,7 +200,7 @@ sumPlot <- function(OGREDataSet){
       coord_flip() +labs(x = "", y = "N") +theme_bw() +  theme_classic() +
       theme(axis.text.y = element_blank(), axis.ticks.y = element_blank()) +
       geom_text(aes(x = xtext, y = 0, label = lab),size=7,hjust = 0, vjust = 1)+
-    guides(size = FALSE)+theme(axis.text = element_text(size = 14)) 
+    guides(size = "none")+theme(axis.text = element_text(size = 14)) 
     ggsave(plot=metadata(OGREDataSet)$barplot_summary,
          path=metadata(OGREDataSet)$outputFolder,width = 30,
          filename="Barplot_Summary.png",height = 20,dpi = 400,units = "cm")
@@ -215,7 +215,7 @@ sumPlot <- function(OGREDataSet){
     coord_flip() +labs(x = "", y = "Log2(N)") +theme_bw() +  theme_classic() +
     theme(axis.text.y = element_blank(), axis.ticks.y = element_blank()) +
     geom_text(aes(x = xtext, y = 0, label = lab),size=7,hjust = 0, vjust = 1)+
-    guides(size = FALSE)+theme(axis.text = element_text(size = 14))
+    guides(size = "none")+theme(axis.text = element_text(size = 14))
     ggsave(plot=metadata(OGREDataSet)$barplot_summary_log,
            path=metadata(OGREDataSet)$outputFolder,width = 30,
            filename="Barplot_Summary_log.png",height = 20,dpi = 400,units = "cm")
@@ -314,6 +314,60 @@ AnnotationTrack(start=tmp$subjStart,end = tmp$subjEnd,chromosome=tmp$subjChr,
                  rotation.title=0,background.title="white",just.group="above")
     }
   }
+  return(OGREDataSet)
+}
+
+#' Plots overlap histograms of all subject datasets and stores them as a list,
+#' that can be accessed by \code{metadata(myOGRE)$hist}                                                                                                                                                                                           
+#' @importFrom ggplot2 ggplot 
+#' @param OGREDataSet An OGREDataSet
+#' @param plot0 plot0=FALSE(default) plots a histogram of all dataset elements
+#' with overlaps, excluding elements without overlaps. plot0=FALSE also includes
+#' elements without overlaps.
+#' @return OGREDataSet.
+#' @examples 
+#' myOGRE <- makeExampleOGREDataSet()
+#' myOGRE <- loadAnnotations(myOGRE)
+#' myOGRE <- fOverlaps(myOGRE)
+#' myOGRE <- plotHist(myOGRE)
+#' metadata(myOGRE)$hist
+#' @export
+plotHist <- function(OGREDataSet,plot0=FALSE){
+  for(i in colnames(metadata(OGREDataSet)$quickDT[,-c(1)])){
+    dt <- metadata(OGREDataSet)$quickDT
+    if(isFALSE(plot0))dt <- dt[dt[[i]]!=0,]
+    p <- ggplot(dt, aes(x=.data[[i]])) +
+    geom_histogram(fill="steelblue2", position="dodge")+
+    geom_vline(xintercept=median(dt[[i]]),
+               linetype="dashed",size=1.5)+
+    scale_x_continuous(trans = 'log10')+
+    theme(legend.position="top")+theme_classic()+
+    theme(axis.title.x=element_blank(),text = element_text(size = 20))+
+    ylab(i)
+    metadata(OGREDataSet)$hist[[i]] <- p
+  }
+  return(OGREDataSet)
+}
+
+#' Calculates min/max/average overlap for all datasets using \code{summary()}. 
+#' Results can be accessed by \code{metadata(OGREDataSet)$summaryDT} which is a 
+#' \code{list()} of two \code{data.table} objects. The first one includes 
+#' elements without any overlap at all and the second provides summary numbers
+#' for all elements that have at least one overlap.
+#' @param OGREDataSet An OGREDataSet
+#' @return OGREDataSet.
+#' @examples 
+#' myOGRE <- makeExampleOGREDataSet()
+#' myOGRE <- loadAnnotations(myOGRE)
+#' myOGRE <- fOverlaps(myOGRE)
+#' myOGRE <- summarizeOverlap(myOGRE)
+#' metadata(myOGRE)$summaryDT
+#' @export
+summarizeOverlap <- function(OGREDataSet){
+  dt <- metadata(OGREDataSet)$quickDT[,-c(1)]
+  metadata(OGREDataSet)$summaryDT[["includes0"]] <- do.call(cbind, lapply(dt, summary))
+  dt[dt==0] <- NA
+  metadata(OGREDataSet)$summaryDT[["excludes0"]] <- do.call(cbind, lapply(dt, summary))
   return(OGREDataSet)
 }
 
@@ -504,7 +558,7 @@ makeExampleOGREDataSet <- function()
 #' @export
 makeExampleGRanges <- function()
 {
-  myGRanges <- GRanges(Rle(c("chr2", "chr2", "chr1", "chr3"), c(1, 3, 2, 4)),
+  myGRanges <- GRanges(Rle(c("2", "2", "1", "3"), c(1, 3, 2, 4)),
              IRanges(seq_len(10), width=seq(10,1), names=head(letters, 10)),
              Rle(strand(c("-", "+", "*", "+", "-")), c(1, 2, 2, 3, 2)),
              ID=seq_len(10), name=paste0("gene",seq_len(10)))
@@ -548,10 +602,37 @@ subsetGRanges <- function(OGREDataSet,IDs,name)
 #' #shrinking range by shifting end 100 bp in upstream direction
 #' myOGRE <- extendGRanges(myOGRE,"genes",downstream=-100)
 #' #shrinking range by shifting from both sides to the center
-#' myOGRE <- extendGRanges(myOGRE,"genes",upstream=-100,downstream=-100)
-#' myOGRE <- subsetGRanges(myOGRE,c("ENSG00000142168","ENSG00000256715"),"genes")
+#' myOGRE <- extendGRanges(myOGRE,"genes",upstream=-10,downstream=-10)
 #' @export
 extendGRanges <- function(OGREDataSet,name, upstream=0, downstream=0)     
+  #taken from https://support.bioconductor.org/p/78652/
+{
+  if (any(strand(OGREDataSet[[name]]) == "*"))
+    warning("'*' ranges were treated as '+'")
+  on_plus <- strand(OGREDataSet[[name]]) == "+" | strand(OGREDataSet[[name]]) == "*"
+  new_start <- start(OGREDataSet[[name]]) - ifelse(on_plus, upstream, downstream)
+  new_end <- end(OGREDataSet[[name]]) + ifelse(on_plus, downstream, upstream)
+  ranges(OGREDataSet[[name]]) <- IRanges(new_start, new_end)
+  OGREDataSet[[name]] <- trim(OGREDataSet[[name]])
+  return(OGREDataSet)
+}
+
+#' Extract promoter
+#'
+#' A wrapper of \code{GenomicRanges::promoters()} to extract promoter regions of 
+#' a GRanges object stored in a OGREDataSet
+#' @importFrom GenomicRanges GRanges
+#' @param OGREDataSet  An OGREDataSet
+#' @param name \code{character} Name of the GRanges object 
+#' @param upstream \code{int} (positive) upstream=2000(default)
+#' @param downstream \code{int} (positive) downstream=200(default)
+#' @return OGREDataSet
+#' @examples
+#' myOGRE <- makeExampleOGREDataSet()
+#' myOGRE <- loadAnnotations(myOGRE)
+#' myOGRE <- extractPromoters(myOGRE,"genes", upstream=2000, downstream=200)
+#' @export
+extractPromoters <- function(OGREDataSet,name, upstream=2000, downstream=200)     
   #taken from https://support.bioconductor.org/p/78652/
 {
   if (any(strand(OGREDataSet[[name]]) == "*"))
