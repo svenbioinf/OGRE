@@ -2,14 +2,7 @@
 % Please edit documentation in R/methods.R
 \name{addDataSetFromHub}
 \alias{addDataSetFromHub}
-\title{Add dataSet from AnnotationHub
-AnnotationHub offers a wide range of annotated datasets which can be manually
-aquired but need some parsing to work with OGRE as detailed in vignette
-section "Load datasets from AnnotationHub".
-For convienence \code{addDataSetFromHub()} adds one of the predefined human
-dataSets of \code{listPredefinedDataSets()} to a OGREDataSet.Those are taken from
-AnnotationHub and are ready to use for OGRE. Additional information on
-dataSets can be found here \code{\link{listPredefinedDataSets}}.}
+\title{Add dataSet from AnnotationHub}
 \usage{
 addDataSetFromHub(OGREDataSet, dataSet, type)
 }
@@ -27,7 +20,6 @@ dataSet will be added as query and at the first position of OGREDataSet.}
 OGREDataSet.
 }
 \description{
-Add dataSet from AnnotationHub
 AnnotationHub offers a wide range of annotated datasets which can be manually
 aquired but need some parsing to work with OGRE as detailed in vignette
 section "Load datasets from AnnotationHub".

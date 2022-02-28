@@ -9,6 +9,7 @@ gvizPlot(
   query,
   gvizPlotsFolder = metadata(OGREDataSet)$gvizPlotsFolder,
   trackRegionLabels = setNames(rep("ID", length(OGREDataSet)), names(OGREDataSet)),
+  trackShapes = setNames(rep("fixedArrow", length(OGREDataSet)), names(OGREDataSet)),
   showPlot = FALSE,
   extendPlot = c(-300, 300)
 )
@@ -29,7 +30,15 @@ of subject element. In the following example
 \code{setNames(c("ID","name"),c("genes","CGI"))}
 Value "ID" and label "genes" would annotate your genes with IDs taken from the
 ID column of your dataset. Datasets not defined in this vector are
-plotted without track labels.}
+plotted without track labels.
+#' @param trackShapes A labeled character vector that defines the type of
+shape in which every dataset's elements are displayed.
+Vector values represent the type of shape and vector labels define the type
+of subject element. In the following example
+\code{setNames(c("fixedArrow","box"),c("genes","CGI"))}
+Value "fixedArrow" and label "genes" would display your genes in fixedArrow
+and CGI as box shape. Possible values:
+(box, arrow, fixedArrow, ellipse, and smallArrow) Default="fixedArrow"}
 
 \item{showPlot}{\code{logical} If \code{FALSE}(default) plots are only saved
 to \code{gvizPlotsFolder}. If \code{TRUE}

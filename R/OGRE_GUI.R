@@ -18,8 +18,18 @@ SHREC <- function(){
           menuItem("Tables", tabName = "tables", icon = icon("table")),
           menuItem("Plots", tabName = "plots", icon = icon("dna")),
           actionButton("runOGRE", "Start analysis",icon("play"),style=
-              "color: #fff; background-color: #ff0e00; border-color: #ff0e00")
-          #actionButton("runOGRE", "Run OGRE")
+              "color: #fff; background-color: #ff0e00; border-color: #ff0e00"),
+          textAreaInput("datasets", "Datasets", rows = 4,value = "none"),
+          br(),br(),
+          h4("Status:"),
+          textOutput("status1"),
+          textOutput("status2"),
+          HTML('<script type="text/javascript">$(document).ready(function() {
+          $("#addHardDrive").click(function() {$("#status1").text("Loading...");
+          });});</script>'),
+          HTML('<script type="text/javascript">$(document).ready(function() {
+          $("#addAnnotationHub").click(function() {$("#status2").text("Loading...");
+          });});</script>')
         )
       ),
       dashboardBody(
@@ -40,38 +50,46 @@ SHREC <- function(){
               img(src='extFolder/overlap.png',align="center",width="336",hight="140"))))
           ),
           tabItem(tabName = "preparations",
-                  box(title = "Input from hard drive",
-                  shinyFiles::shinyDirButton('queryFolder', 'Select query folder', 'Please select a query folder', FALSE),
-                  textInput("queryFolderText",label=NULL,
-                            value=file.path(system.file('extdata', package = 'OGRE'),"query")),
-                  shinyFiles::shinyDirButton("subjFolder","Select subject folder","Please select a subject folder",FALSE),
-                  textInput("subjFolderText",label=NULL,
-                            value=file.path(system.file('extdata', package = 'OGRE'),"subject")),
-                  ),
-                  box(title = "Manipulate datasets",
-                      solidHeader=TRUE,splitLayout(
-                        textAreaInput("subsetIdentifier", "Subset dataset by ID", rows = 3,value = "ID1\nID2\n..."),
-                        textInput("subsetName","Name of dataset to subset:","myDataset"),
-                      ),
-                      splitLayout(title="Manipulate datasets",
-                                  textInput("extendIdentifier","Name of dataset to extend:","myDataset"),
-                                  textInput("extendUpstream","upstream(bp)",0),
-                                  textInput("extendDownstream","downstream(bp)",0),
-                      ),
-                      splitLayout(
-                        textInput("promotersIdentifier","Name of dataset to extract promoters:","myDataset"),
-                        textInput("promotersUpstream","upstream(bp)",0),
-                        textInput("promotersDownstream","downstream(bp)",0),
-                      )),
-                  box(title = "GViz plot settings",
-                  radioButtons("queriesToPlot", h5("Queries to plot"),
-                               choices = list("All queries" = 1, 
-                                              "First 10 queries" = 2,
-                                              "User defined"=3)
-                               ,selected = 3,),
-                  textAreaInput("queriesToPlotCustom", "Status", rows = 4,
-                                value="ENSG00000269011\nENSG00000142168",resize="none")
-                  )
+            box(title = "Datasets from hard drive",
+            shinyFiles::shinyDirButton('queryFolder', 'Select query folder', 'Please select a query folder', FALSE),
+            textInput("queryFolderText",label=NULL,
+                      value=file.path(system.file('extdata', package = 'OGRE'),"query")),
+            shinyFiles::shinyDirButton("subjFolder","Select subject folder","Please select a subject folder",FALSE),
+            textInput("subjFolderText",label=NULL,
+                      value=file.path(system.file('extdata', package = 'OGRE'),"subject")),
+            actionButton("addHardDrive","Add datasets")
+            ),
+            box(title="Datasets from AnnotationHub",
+            radioButtons("checkboxQuery", "Query",selected = character(0),
+                             choices = listPredefinedDataSets()),                
+            checkboxGroupInput("checkboxSubjects", label = ("Subjects"), 
+                               choices = listPredefinedDataSets()),
+            actionButton("addAnnotationHub","Add datasets")
+            ),
+            box(title = "Manipulate datasets",
+                solidHeader=TRUE,splitLayout(
+                  textAreaInput("subsetIdentifier", "Subset dataset by ID", rows = 3,value = "ID1\nID2\n..."),
+                  textInput("subsetName","Name of dataset to subset:","myDataset"),
+                ),
+                splitLayout(title="Manipulate datasets",
+                            textInput("extendIdentifier","Name of dataset to extend:","myDataset"),
+                            textInput("extendUpstream","upstream(bp)",0),
+                            textInput("extendDownstream","downstream(bp)",0),
+                ),
+                splitLayout(
+                  textInput("promotersIdentifier","Name of dataset to extract promoters:","myDataset"),
+                  textInput("promotersUpstream","upstream(bp)",0),
+                  textInput("promotersDownstream","downstream(bp)",0),
+                )),
+            box(title = "GViz plot settings",
+            radioButtons("queriesToPlot", h5("Queries to plot"),
+                         choices = list("All queries" = 1, 
+                                        "First 10 queries" = 2,
+                                        "User defined"=3)
+                         ,selected = 3,),
+            textAreaInput("queriesToPlotCustom", "Status", rows = 4,
+                          value="ENSG00000269011\nENSG00000142168",resize="none")
+            )
           ),
           tabItem(tabName = "charts",
                   box(title = "Summary",
@@ -110,21 +128,22 @@ SHREC <- function(){
         )
       )#end dashboardbody
     ),#end dashboardpage
-    server =  function(input, output,session) {
+    server =  function(input, output,session) {#--------------------------------
       addResourcePath("extFolder", system.file('extdata', package = 'OGRE'))
       v = reactiveValues(myOGRE=OGREDataSet(),
                          queryFolder=NULL, 
                          subjFolder=NULL,
-                         queriesToPlot=NULL)
+                         queriesToPlot=NULL,
+                         status="Ready")
       
       shinyFiles::shinyDirChoose(input,id='queryFolder',roots = c(root = '/'))
       shinyFiles::shinyDirChoose(input,id='subjFolder',roots = c(root = '/'))
       observeEvent(input$queryFolder,{updateTextInput(session,"queryFolderText",
-                                                      value=parseDirPath(roots = c(root = '/'),input$queryFolder))
+                    value=parseDirPath(roots = c(root = '/'),input$queryFolder))
         v$queryFolder <- parseDirPath(roots = c(root = '/'),input$queryFolder)
       })
       observeEvent(input$subjFolder,{updateTextInput(session,"subjFolderText",
-                                                     value=parseDirPath(roots = c(root = '/'),input$subjFolder))
+                    value=parseDirPath(roots = c(root = '/'),input$subjFolder))
         v$subjFolder <- parseDirPath(roots = c(root = '/'),input$subjFolder)
       })
       observeEvent(input$queryFolderText,{
@@ -136,6 +155,29 @@ SHREC <- function(){
       observeEvent(input$queriesToPlot, {
         v$queriesToPlot <- input$queriesToPlot
       })
+      observeEvent(input$addHardDrive,{#Add data from hardDrive
+        if(v$queryFolder!=""){
+          v$myOGRE <- addGRanges(v$myOGRE,readQuery(v$myOGRE)[[1]],"query")}
+        if(v$subjectFolder!=""){
+          v$myOGRE <- readSubject(v$myOGRE)}
+        updateTextAreaInput(session,"datasets",value = paste0(names(v$myOGRE),"\n"))
+        output$status1 <- renderText({"Dataset added. Ready"})
+      })
+      observeEvent(input$addAnnotationHub,{#Add data from AnnotationHub
+        if(!is.null(input$checkboxQuery)){
+          v$myOGRE <- addDataSetFromHub(v$myOGRE,input$checkboxQuery ,"query")
+        }
+        if(!is.null(input$checkboxSubjects)){
+          for(x in input$checkboxSubjects){
+            v$myOGRE <- addDataSetFromHub(v$myOGRE,x ,"subject")
+        }}
+        updateTextAreaInput(session,"datasets",value = paste0(names(v$myOGRE),"\n"))
+        output$status2 <- renderText({"Dataset added. Ready"})
+        
+      })
+      
+      
+
       observeEvent(input$runOGRE, { #start main processing----------------------
         session$sendCustomMessage(type='jsCode', list(value = 'alert("Started calculation");'))
         

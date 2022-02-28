@@ -74,9 +74,44 @@ readSubject=function(OGREDataSet){
     },x=subjectName,y=subjectPath))
 
   return(OGREDataSet)
-
 }
 
+#' Read query dataset
+#'
+#' [readQuery()] scanns `queryFolder` for a `GRanges` object stored as .RDS/.rds
+#' file and attaches it to the OGREDataSet.
+#' @param OGREDataSet A OGREDataSet.
+#' @return A OGREDataSet.
+#' @keywords internal
+readDataSetfromFolder=function(OGREDataSet,type){
+  files <- list.files(metadata(OGREDataSet)$queryFolder)
+  assertthat::assert_that(length(files)>0,msg="Folder is empty!")
+  assertthat::assert_that(grep("rds|RDS|csv|CSV",files)>0,msg="Wrong file type!")
+  
+  message("Reading dataset... ")
+  if(type=="query"){
+    queryPath <- list.files(metadata(OGREDataSet)$queryFolder,full.names = TRUE)
+    queryName <- tools::file_path_sans_ext(list.files(metadata(OGREDataSet)$queryFolder))
+    if(grep("rds|RDS",files)>0){
+    OGREDataSet[[queryName]]<- readRDS(queryPath)}
+    else{
+    OGREDataSet[[queryName]]<- makeGRangesFromDataFrame(queryPath,keep.extra.columns = TRUE)
+    
+    }
+  }
+  else{
+    
+  }
+
+  assertthat::assert_that(c("ID")%in%names(mcols(OGREDataSet[[queryName]])),
+                          msg="Query must contain ID column.")
+  assertthat::assert_that(!any(duplicated(OGREDataSet[[queryName]]$ID)),
+                          msg="ID column must be unique.")
+  assertthat::assert_that(length(OGREDataSet[[queryName]])!=0,
+                          msg=paste0("Dataset has no ranges: ",queryName))
+  
+  return(OGREDataSet)
+}
 
 
 
@@ -106,12 +141,17 @@ fOverlaps <- function(OGREDataSet,selfHits=FALSE,ignoreStrand=TRUE){
     OGREDataSet[seq(2,length(OGREDataSet))])
   for(subj in metadata(OGREDataSet)$subjectNames){
     ol <- findOverlaps(OGREDataSet[[1]],OGREDataSet[[subj]],ignore.strand=ignoreStrand)
-    ol <- data.table(q=queryHits(ol),s=mcols(OGREDataSet[[subj]])[subjectHits(ol),1])
     if(length(ol)==0){ #if no overlap hits skip to next subj
       message("No overlap found for: ",subj)
       next
     }
     else{
+      overlapWidth <- width(pintersect(OGREDataSet[[1]][queryHits(ol)], 
+              OGREDataSet[[subj]][subjectHits(ol)],ignore.strand=ignoreStrand))
+      #overlap ratio with reference to query.(overLen=2,queryLen=6, ratio=0.33)
+      #https://support.bioconductor.org/p/72656/
+      overlapRatio <- overlapWidth / width(OGREDataSet[[1]][queryHits(ol)])
+      ol <- data.table(q=queryHits(ol),s=mcols(OGREDataSet[[subj]])[subjectHits(ol),1])
       detailDT <- rbind(detailDT,data.table(
        queryID=mcols(OGREDataSet[[1]])[ol$q,"ID"],
        queryType=names(OGREDataSet)[1],
@@ -120,12 +160,17 @@ fOverlaps <- function(OGREDataSet,selfHits=FALSE,ignoreStrand=TRUE){
        queryChr=as.character(seqnames(OGREDataSet[[names(OGREDataSet)[1]]]))[ol$q],
        queryStart=start(OGREDataSet[[names(OGREDataSet)[1]]])[ol$q],
        queryEnd=end(OGREDataSet[[names(OGREDataSet)[1]]])[ol$q],
+       queryStrand=as.character(strand(OGREDataSet[[names(OGREDataSet)[1]]]))[ol$q],
        subjChr=as.character(seqnames(OGREDataSet[[subj]]))
        [match(ol$s,mcols(OGREDataSet[[subj]])[,"ID"])],
        subjStart=start(OGREDataSet[[subj]])
        [match(ol$s,mcols(OGREDataSet[[subj]])[,"ID"])],
        subjEnd=end(OGREDataSet[[subj]])
-       [match(ol$s,mcols(OGREDataSet[[subj]])[,"ID"])]
+       [match(ol$s,mcols(OGREDataSet[[subj]])[,"ID"])],
+       subjStrand=as.character(strand(OGREDataSet[[subj]]))
+       [match(ol$s,mcols(OGREDataSet[[subj]])[,"ID"])],
+       overlapWidth=overlapWidth,
+       overlapRatio=overlapRatio
       ))
       if(isFALSE(selfHits)){ #remove self hits
         detailDT <- detailDT[!(queryID==subjID)]
@@ -140,7 +185,11 @@ fOverlaps <- function(OGREDataSet,selfHits=FALSE,ignoreStrand=TRUE){
   metadata(OGREDataSet)$quickDT <- detailDT[,c("queryID","subjType")]
   metadata(OGREDataSet)$quickDT <- data.table::dcast(data=metadata(OGREDataSet)$quickDT, 
                           queryID ~ subjType,value.var = "subjType",fun=length)
-  
+  #add and set query elements without hits to 0
+  withoutHits <- setdiff(mcols(OGREDataSet[[1]])$ID,metadata(OGREDataSet)$quickDT$queryID)
+  metadata(OGREDataSet)$quickDT <- rbind(metadata(OGREDataSet)$quickDT,
+                                    data.table(queryID=withoutHits),fill=TRUE)
+  metadata(OGREDataSet)$quickDT[is.na(metadata(OGREDataSet)$quickDT)] <- 0
   return(OGREDataSet)
 }
 
@@ -249,6 +298,14 @@ sumPlot <- function(OGREDataSet){
 #' Value "ID" and label "genes" would annotate your genes with IDs taken from the
 #' ID column of your dataset. Datasets not defined in this vector are 
 #' plotted without track labels.
+#' #' @param trackShapes A labeled character vector that defines the type of 
+#' shape in which every dataset's elements are displayed. 
+#' Vector values represent the type of shape and vector labels define the type 
+#' of subject element. In the following example 
+#' \code{setNames(c("fixedArrow","box"),c("genes","CGI"))}
+#' Value "fixedArrow" and label "genes" would display your genes in fixedArrow 
+#' and CGI as box shape. Possible values:
+#' (box, arrow, fixedArrow, ellipse, and smallArrow) Default="fixedArrow"
 #' @param extendPlot \code{int vector} Integer vector of length two that extends
 #' the plot window to the left or right by adding the first value to query start
 #' and the second value to query end coordinates(bp). e.g. \code{c(-1000,1000)}
@@ -264,6 +321,7 @@ sumPlot <- function(OGREDataSet){
 gvizPlot <- function(OGREDataSet,query,
  gvizPlotsFolder = metadata(OGREDataSet)$gvizPlotsFolder,
  trackRegionLabels =setNames(rep("ID",length(OGREDataSet)),names(OGREDataSet)),
+ trackShapes=setNames(rep("fixedArrow",length(OGREDataSet)),names(OGREDataSet)),
  showPlot=FALSE,extendPlot=c(-300,300)){
   queryID <- subjType <-  NULL
   for(q in query){
@@ -276,18 +334,20 @@ gvizPlot <- function(OGREDataSet,query,
         tmp$subjID,mcols(OGREDataSet[[x]])[["ID"]])]
       if(dim(tmp)[1]!=0){# if subjectType overlaps with query create track
         if(is.null(regionLabels)){
-AnnotationTrack(start=tmp$subjStart,end = tmp$subjEnd,chromosome=tmp$subjChr,
-              name=x,id = regionLabels,fontsize.title=24,
+  AnnotationTrack(start=tmp$subjStart,end = tmp$subjEnd,chromosome=tmp$subjChr,
+              name=x,id = regionLabels,fontsize.title=24,shape=trackShapes[x],
               featureAnnotation=NULL,fontcolor.title="black",fontcolor="black",
-              fontcolor.group="black",fontcolor.item="black",rotation.item=20)
+              fontcolor.group="black",fontcolor.item="black",rotation.item=20,
+              arrowHeadWidth=30,strand=tmp$subjStrand)
         }else{
-AnnotationTrack(start=tmp$subjStart,end = tmp$subjEnd,chromosome=tmp$subjChr,
-              name=x,id = regionLabels,fontsize.title=24,
+  AnnotationTrack(start=tmp$subjStart,end = tmp$subjEnd,chromosome=tmp$subjChr,
+              name=x,id = regionLabels,fontsize.title=24,shape=trackShapes[x],
               featureAnnotation="id",fontcolor.title="black",fontcolor="black",
-              fontcolor.group="black",fontcolor.item="black",rotation.item=20)          
+              fontcolor.group="black",fontcolor.item="black",rotation.item=20,
+              arrowHeadWidth=30,strand=tmp$subjStrand)          
         }
       }else{
-        AnnotationTrack(GRanges(),name = x,fontcolor.title="black",fontsize.title=24)
+  AnnotationTrack(GRanges(),name = x,fontcolor.title="black",fontsize.title=24)
       }
     })
     #Gviz helper tracks
@@ -299,10 +359,10 @@ AnnotationTrack(start=tmp$subjStart,end = tmp$subjEnd,chromosome=tmp$subjChr,
     to <- end(queryGR)+extendPlot[2]
     #Gviz query track
     regionLabels<-mcols(queryGR)[[trackRegionLabels[1]]]
-    queryTrack<-AnnotationTrack(range=queryGR,name="Query",fill="red",arrowHeadWidth=30,
-                               shape="fixedArrow",featureAnnotation="id",
-                               id=regionLabels,fontsize.group=20,fontsize.title=24,
-                               fontcolor.title="black")#,stacking = "dense"
+    queryTrack<-AnnotationTrack(range=queryGR,name=names(OGREDataSet)[1],fill="red",
+       arrowHeadWidth=30,shape=trackShapes[1],featureAnnotation="id",
+       id=regionLabels,fontsize.group=20,fontsize.title=24,
+       fontcolor.title="black")#,stacking = "dense"
     allTracks<-c(itrack,gtrack,queryTrack,GvizSubjTracks)#;names(temp)=make.unique(names(temp))
     #Gviz plotting
     pdf(file.path(gvizPlotsFolder,paste0(q,".pdf")),width = 30/2.54,height = 20/2.54)
@@ -316,7 +376,8 @@ AnnotationTrack(start=tmp$subjStart,end = tmp$subjEnd,chromosome=tmp$subjChr,
   }
   return(OGREDataSet)
 }
-
+#' Plot histogram
+#'
 #' Plots overlap histograms of all subject datasets and stores them as a list,
 #' that can be accessed by \code{metadata(myOGRE)$hist}                                                                                                                                                                                           
 #' @importFrom ggplot2 ggplot 
@@ -348,7 +409,8 @@ plotHist <- function(OGREDataSet,plot0=FALSE){
   }
   return(OGREDataSet)
 }
-
+#' Calculates min/max/average overlap
+#' 
 #' Calculates min/max/average overlap for all datasets using \code{summary()}. 
 #' Results can be accessed by \code{metadata(OGREDataSet)$summaryDT} which is a 
 #' \code{list()} of two \code{data.table} objects. The first one includes 
@@ -403,6 +465,7 @@ listPredefinedDataSets <- function(){
 }
 
 #' Add dataSet from AnnotationHub
+#' 
 #' AnnotationHub offers a wide range of annotated datasets which can be manually
 #' aquired but need some parsing to work with OGRE as detailed in vignette
 #' section "Load datasets from AnnotationHub". 
@@ -491,7 +554,9 @@ addDataSetFromHub <- function(OGREDataSet,dataSet,type){
   return(OGREDataSet)
 }
 
-#' Add a GenomicRanges dataset to OGREDataSet                                                                                                                                                                                             
+#' Add GenomicRanges 
+#'
+#' Add a GenomicRanges dataset to OGREDataSet
 #' @importFrom assertthat assert_that 
 #' @param OGREDataSet An OGREDataSet
 #' @param dataSet A GRanges object. Each region needs chromosome, start, end and
@@ -500,13 +565,15 @@ addDataSetFromHub <- function(OGREDataSet,dataSet,type){
 #' conventions i.e. (chr1, CHR1, 1, I) among all datasets
 #' @param type Type of dataSet, must be either query or subject. If query the
 #' dataSet will be added as query and at the first position of OGREDataSet. 
+#' @param label A \code{character} that will label your GRanges object. If
+#' not supplied, the label will be guessed from the dataset parameter.
 #' @return OGREDataSet.
 #' @examples 
 #' myOGRE <- OGREDataSet()
 #' myGRanges <- makeExampleGRanges()
 #' myOGRE <- addGRanges(myOGRE,myGRanges,"query")
 #' @export
-addGRanges <- function(OGREDataSet,dataSet,type){
+addGRanges <- function(OGREDataSet,dataSet,type,label=NULL){
   assertthat::assert_that(type%in%c("query","subject"),
                           msg="Parameter type must be query or subject.")
   assertthat::assert_that(is(dataSet,"GRanges"),
@@ -518,12 +585,13 @@ addGRanges <- function(OGREDataSet,dataSet,type){
   assertthat::assert_that(length(dataSet)!=0,
                           msg="DataSet has no ranges.")
   mData <- metadata(OGREDataSet)
+  if(is.null(label))label <- deparse(substitute(dataSet))
   if(type=="query"){
     OGREDataSet <- c(GRangesList(dataSet),OGREDataSet)
-    names(OGREDataSet)[1] <- deparse(substitute(dataSet))
+    names(OGREDataSet)[1] <- label
     metadata(OGREDataSet) <- mData
   }else{
-    OGREDataSet[[deparse(substitute(dataSet))]] <- dataSet
+    OGREDataSet[[label]] <- dataSet
     metadata(OGREDataSet) <- mData
     if(length(OGREDataSet)>1){ #update subject names
       metadata(OGREDataSet)$subjectNames <-names(OGREDataSet
@@ -534,6 +602,7 @@ addGRanges <- function(OGREDataSet,dataSet,type){
 }
 
 #' Make a example OGRE dataset
+#' 
 #' `makeExampleOGREDataSet` generates a example OGREDataSet from dataset files
 #' stored in OGRE's extdata directory.
 #' @return OGREDataSet.

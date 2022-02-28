@@ -2,9 +2,9 @@
 % Please edit documentation in R/methods.R
 \name{addGRanges}
 \alias{addGRanges}
-\title{Add a GenomicRanges dataset to OGREDataSet}
+\title{Add GenomicRanges}
 \usage{
-addGRanges(OGREDataSet, dataSet, type)
+addGRanges(OGREDataSet, dataSet, type, label = NULL)
 }
 \arguments{
 \item{OGREDataSet}{An OGREDataSet}
@@ -16,6 +16,9 @@ conventions i.e. (chr1, CHR1, 1, I) among all datasets}
 
 \item{type}{Type of dataSet, must be either query or subject. If query the
 dataSet will be added as query and at the first position of OGREDataSet.}
+
+\item{label}{A \code{character} that will label your GRanges object. If
+not supplied, the label will be guessed from the dataset parameter.}
 }
 \value{
 OGREDataSet.
