@@ -69,47 +69,72 @@ readSubject=function(OGREDataSet){
       assertthat::assert_that(c("ID")%in%names(mcols(tmp)),msg="Subject must contain ID column.")
       assertthat::assert_that(!any(duplicated(tmp$ID)),msg="ID column must be unique.")
       assertthat::assert_that(length(tmp)!=0,msg=paste0("Dataset has no ranges: ",x))
-
       tmp
     },x=subjectName,y=subjectPath))
-
   return(OGREDataSet)
 }
 
-#' Read query dataset
+#' Read dataset(s) from folder
 #'
-#' [readQuery()] scanns `queryFolder` for a `GRanges` object stored as .RDS/.rds
-#' file and attaches it to the OGREDataSet.
+#' [readDataSetFromFolder()] scanns queryFolder and subjectFolder for either
+#' .RDS/.rds or .CSV/.csv files and adds them to a OGREDataSet. Each region 
+#' needs chromosome, start, end and strand information. (tabular file columns
+#' must be named accordingly). A unique ID and a name column must be present in 
+#' the `GenomicRanges` object's metatdata and tabular file.
 #' @param OGREDataSet A OGREDataSet.
+#' @param type \code{character} and one of query/subject.
 #' @return A OGREDataSet.
-#' @keywords internal
-readDataSetfromFolder=function(OGREDataSet,type){
-  files <- list.files(metadata(OGREDataSet)$queryFolder)
-  assertthat::assert_that(length(files)>0,msg="Folder is empty!")
-  assertthat::assert_that(grep("rds|RDS|csv|CSV",files)>0,msg="Wrong file type!")
-  
-  message("Reading dataset... ")
+#' @export
+#' @examples 
+#' myOGRE <- makeExampleOGREDataSet()
+#' myOGRE <- readDataSetFromFolder(myOGRE,type="query")
+#' myOGRE <- readDataSetFromFolder(myOGRE,type="subject")
+readDataSetFromFolder=function(OGREDataSet,type){
+  message("Reading dataset(s)... ")
   if(type=="query"){
+    files <- list.files(metadata(OGREDataSet)$queryFolder)
+    assertthat::assert_that(length(files)>0,msg="Folder is empty!")
+    assertthat::assert_that(grep("rds|RDS|csv|CSV",files)>0,msg="Wrong file type!")
     queryPath <- list.files(metadata(OGREDataSet)$queryFolder,full.names = TRUE)
     queryName <- tools::file_path_sans_ext(list.files(metadata(OGREDataSet)$queryFolder))
     if(grep("rds|RDS",files)>0){
     OGREDataSet[[queryName]]<- readRDS(queryPath)}
     else{
-    OGREDataSet[[queryName]]<- makeGRangesFromDataFrame(queryPath,keep.extra.columns = TRUE)
-    
+    OGREDataSet[[queryName]]<- makeGRangesFromDataFrame(fread(queryPath),
+                               keep.extra.columns = TRUE)
+    }
+    assertthat::assert_that(c("ID")%in%names(mcols(OGREDataSet[[queryName]])),
+                            msg="Query must contain ID column.")
+    assertthat::assert_that(!any(duplicated(OGREDataSet[[queryName]]$ID)),
+                            msg="ID column must be unique.")
+    assertthat::assert_that(length(OGREDataSet[[queryName]])!=0,
+                            msg=paste0("Dataset has no ranges: ",queryName))
+  }
+  else if(type=="subject"){
+    files <- list.files(metadata(OGREDataSet)$subjectFolder)
+    assertthat::assert_that(length(files)>0,msg="Folder is empty!")
+    assertthat::assert_that(length(grep("rds|RDS|csv|CSV",files))==length(files),
+                            msg="Wrong file type!")
+    subjectPath <- list.files(metadata(OGREDataSet)$subjectFolder,full.names = TRUE)
+    subjectName <- tools::file_path_sans_ext(list.files(metadata(OGREDataSet)$subjectFolder))
+    if(length(grep("rds|RDS",files))==length(files)){
+    OGREDataSet <- c(OGREDataSet,mapply(function(x,y){
+      tmp=readRDS(y)
+      assertthat::assert_that(c("ID")%in%names(mcols(tmp)),msg="Subject must contain ID column.")
+      assertthat::assert_that(!any(duplicated(tmp$ID)),msg="ID column must be unique.")
+      assertthat::assert_that(length(tmp)!=0,msg=paste0("Dataset has no ranges: ",x))
+      tmp
+    },x=subjectName,y=subjectPath))
+    }else{
+    OGREDataSet <- c(OGREDataSet,mapply(function(x,y){
+      tmp <-makeGRangesFromDataFrame(fread(y),keep.extra.columns = TRUE)
+      assertthat::assert_that(c("ID")%in%names(mcols(tmp)),msg="Subject must contain ID column.")
+      assertthat::assert_that(!any(duplicated(tmp$ID)),msg="ID column must be unique.")
+      assertthat::assert_that(length(tmp)!=0,msg=paste0("Dataset has no ranges: ",x))
+      tmp
+    },x=subjectName,y=subjectPath))
     }
   }
-  else{
-    
-  }
-
-  assertthat::assert_that(c("ID")%in%names(mcols(OGREDataSet[[queryName]])),
-                          msg="Query must contain ID column.")
-  assertthat::assert_that(!any(duplicated(OGREDataSet[[queryName]]$ID)),
-                          msg="ID column must be unique.")
-  assertthat::assert_that(length(OGREDataSet[[queryName]])!=0,
-                          msg=paste0("Dataset has no ranges: ",queryName))
-  
   return(OGREDataSet)
 }
 
@@ -128,19 +153,20 @@ readDataSetfromFolder=function(OGREDataSet,type){
 #' identical regions (with identical IDs) within datasets. 
 #' @param ignoreStrand \code{logical} If TRUE (default) two regions with 
 #' overlapping locations on different strands are considered an overlap hit.
+#' @param ... Additional parameters, see \code{GenomicRanges::findOverlaps()}
 #' @return OGREDataSet.
 #' @examples
 #' myOGRE <- makeExampleOGREDataSet()
 #' myOGRE <- loadAnnotations(myOGRE)
 #' myOGRE <- fOverlaps(myOGRE)
 #' @export
-fOverlaps <- function(OGREDataSet,selfHits=FALSE,ignoreStrand=TRUE){
+fOverlaps <- function(OGREDataSet,selfHits=FALSE,ignoreStrand=TRUE,...){
   queryID <- subjID <- subjType <- . <-  NULL
   detailDT <- data.table() #data table to store all overlaps for query vs all subjects
   metadata(OGREDataSet)$subjectNames <- names(
     OGREDataSet[seq(2,length(OGREDataSet))])
   for(subj in metadata(OGREDataSet)$subjectNames){
-    ol <- findOverlaps(OGREDataSet[[1]],OGREDataSet[[subj]],ignore.strand=ignoreStrand)
+    ol <- findOverlaps(OGREDataSet[[1]],OGREDataSet[[subj]],ignore.strand=ignoreStrand,...)
     if(length(ol)==0){ #if no overlap hits skip to next subj
       message("No overlap found for: ",subj)
       next
@@ -190,6 +216,10 @@ fOverlaps <- function(OGREDataSet,selfHits=FALSE,ignoreStrand=TRUE){
   metadata(OGREDataSet)$quickDT <- rbind(metadata(OGREDataSet)$quickDT,
                                     data.table(queryID=withoutHits),fill=TRUE)
   metadata(OGREDataSet)$quickDT[is.na(metadata(OGREDataSet)$quickDT)] <- 0
+  #set order to match other tables
+  metadata(OGREDataSet)$quickDT <- metadata(OGREDataSet)$quickDT[
+    match(mcols(OGREDataSet[[1]])$ID,metadata(OGREDataSet)$quickDT$queryID),]
+  
   return(OGREDataSet)
 }
 
@@ -298,7 +328,7 @@ sumPlot <- function(OGREDataSet){
 #' Value "ID" and label "genes" would annotate your genes with IDs taken from the
 #' ID column of your dataset. Datasets not defined in this vector are 
 #' plotted without track labels.
-#' #' @param trackShapes A labeled character vector that defines the type of 
+#' @param trackShapes A labeled character vector that defines the type of 
 #' shape in which every dataset's elements are displayed. 
 #' Vector values represent the type of shape and vector labels define the type 
 #' of subject element. In the following example 
@@ -399,7 +429,7 @@ plotHist <- function(OGREDataSet,plot0=FALSE){
     if(isFALSE(plot0))dt <- dt[dt[[i]]!=0,]
     p <- ggplot(dt, aes(x=.data[[i]])) +
     geom_histogram(fill="steelblue2", position="dodge")+
-    geom_vline(xintercept=median(dt[[i]]),
+    geom_vline(xintercept=stats::median(dt[[i]]),
                linetype="dashed",size=1.5)+
     scale_x_continuous(trans = 'log10')+
     theme(legend.position="top")+theme_classic()+
@@ -473,7 +503,7 @@ listPredefinedDataSets <- function(){
 #' dataSets of `listPredefinedDataSets()` to a OGREDataSet.Those are taken from 
 #' AnnotationHub and are ready to use for OGRE. Additional information on 
 #' dataSets can be found here \code{\link{listPredefinedDataSets}}. 
-#' @importFrom data.table fread
+#' @importFrom data.table fread data.table as.data.table
 #' @importFrom assertthat assert_that
 #' @importFrom AnnotationHub AnnotationHub
 #' @importFrom GenomeInfoDb keepStandardChromosomes seqlevelsStyle dropSeqlevels

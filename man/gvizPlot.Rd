@@ -30,8 +30,9 @@ of subject element. In the following example
 \code{setNames(c("ID","name"),c("genes","CGI"))}
 Value "ID" and label "genes" would annotate your genes with IDs taken from the
 ID column of your dataset. Datasets not defined in this vector are
-plotted without track labels.
-#' @param trackShapes A labeled character vector that defines the type of
+plotted without track labels.}
+
+\item{trackShapes}{A labeled character vector that defines the type of
 shape in which every dataset's elements are displayed.
 Vector values represent the type of shape and vector labels define the type
 of subject element. In the following example

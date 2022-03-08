@@ -2,11 +2,15 @@
 #'
 #' `SHREC()` is a graphical user interface for OGRE
 #' @import shiny 
+#' @import data.table
 #' @importFrom DT renderDT datatable JS
-#' @importFrom shinyFiles shinyDirButton shinyDirChoose
+#' @importFrom shinyFiles shinyDirButton shinyDirChoose parseDirPath
+#' @importFrom shinyBS bsTooltip
 #' @import shinydashboard
+#' @return Runs GUI, this function normally does not return
 #' @export
 SHREC <- function(){
+  addResourcePath("extFolder", system.file('extdata', package = 'OGRE'))
   runApp(shinyApp(
     ui = dashboardPage(
       dashboardHeader(title="OGRE Overlapping Genomic REgions",titleWidth = 500),
@@ -16,7 +20,7 @@ SHREC <- function(){
           menuItem("Preparations", tabName = "preparations", icon = icon("cogs")),
           menuItem("Charts", tabName = "charts", icon = icon("chart-bar")),
           menuItem("Tables", tabName = "tables", icon = icon("table")),
-          menuItem("Plots", tabName = "plots", icon = icon("dna")),
+          menuItem("UCSC", tabName = "ucsc", icon = icon("dna")),
           actionButton("runOGRE", "Start analysis",icon("play"),style=
               "color: #fff; background-color: #ff0e00; border-color: #ff0e00"),
           textAreaInput("datasets", "Datasets", rows = 4,value = "none"),
@@ -24,11 +28,15 @@ SHREC <- function(){
           h4("Status:"),
           textOutput("status1"),
           textOutput("status2"),
+          textOutput("status3"),
           HTML('<script type="text/javascript">$(document).ready(function() {
           $("#addHardDrive").click(function() {$("#status1").text("Loading...");
           });});</script>'),
           HTML('<script type="text/javascript">$(document).ready(function() {
           $("#addAnnotationHub").click(function() {$("#status2").text("Loading...");
+          });});</script>'),
+          HTML('<script type="text/javascript">$(document).ready(function() {
+          $("#runOGRE").click(function() {$("#status3").text("Analyzing...");
           });});</script>')
         )
       ),
@@ -40,12 +48,18 @@ SHREC <- function(){
             fluidRow(
             box(width = 3,height = 200,title="Welcome!",column(12,align="center",
              img(src='extFolder/logo.png',align="center",width="249",hight="108"))),
-            box(width = 3,height = 200,title =" Before you start...",
-                  h4("Please make sure your datasets strand information uses format ('+' '-' '*')
-                Not (1,-1,minus,plus), originate from a common genome version 
-                and build. HG19 and HG38 coordinates can differ slightly."))),
+            box(width = 3,title =" A few tips before you start...",
+                HTML("<ul>
+                <li>Make sure your datasets strand information uses format (+, -, *), not (1, -1, minus, plus)</li>
+                <li>Your datasets originate from a common genome version and build, (HG19 and HG38 coordinates differ slightly)</li>
+                <li>Each dataset element(region) should have a unique ID and a name</li>
+                <li>All datasets should share the same chromosome notation, one of (1,chr1, CHR1, chr-1) '1' is preferred</li>
+                </ul>"))),
             fluidRow(
-            box(width = 3,height = 200,title="Welcome!"),
+            box(width = 3,height = 200,
+                h3("OGRE - Calculate, visualize, and analyze overlap between genomic 
+                   input regions and public annotations.",
+                   align = "center")),
             box(width = 3,height = 200,title="Overlap!",column(12,align="center",
               img(src='extFolder/overlap.png',align="center",width="336",hight="140"))))
           ),
@@ -83,10 +97,11 @@ SHREC <- function(){
                 )),
             box(title = "GViz plot settings",
             radioButtons("queriesToPlot", h5("Queries to plot"),
-                         choices = list("All queries" = 1, 
-                                        "First 10 queries" = 2,
-                                        "User defined"=3)
-                         ,selected = 3,),
+                         choices =list("All queries", 
+                                        "First 5 queries",
+                                        "First 10 queries",
+                                        "User defined")
+                         ,selected = "First 5 queries",),
             textAreaInput("queriesToPlotCustom", "Status", rows = 4,
                           value="ENSG00000269011\nENSG00000142168",resize="none")
             )
@@ -112,24 +127,26 @@ SHREC <- function(){
                   hr(),
                   box("Overlap details (long-format)",width=12,DT::DTOutput("summtD"),  downloadButton("download1", "")),# no label: this button will be hidden
           ),
-          tabItem(tabName = "plots",
-                  sidebarLayout(
-                    sidebarPanel(
-                      #DT::DTOutput("quickDT")
-                    ),
-                    mainPanel(
-                      plotOutput("distPlot")
-                    )
+          tabItem(tabName = "ucsc",
+                  box(width=2,DT::DTOutput("geneLinkUCSC")),
+                  tabBox(
+                    tabPanel("UCSC HG19",htmlOutput("ucsc")),
+                    tabPanel("UCSC HG38",htmlOutput("ucsc2")),
                   )
+
           ), 
           tabItem(tabName = "widgets",
                   h2("Widgets tab content")
           )
-        )
+        ),
+      #Tooltips
+      bsTooltip("runOGRE", paste0(
+        "<p>Run OGRE after adjusting all settings or start an example run.</p>"
+      ), placement = "bottom", trigger = "hover",options = NULL)
       )#end dashboardbody
+      
     ),#end dashboardpage
     server =  function(input, output,session) {#--------------------------------
-      addResourcePath("extFolder", system.file('extdata', package = 'OGRE'))
       v = reactiveValues(myOGRE=OGREDataSet(),
                          queryFolder=NULL, 
                          subjFolder=NULL,
@@ -141,25 +158,29 @@ SHREC <- function(){
       observeEvent(input$queryFolder,{updateTextInput(session,"queryFolderText",
                     value=parseDirPath(roots = c(root = '/'),input$queryFolder))
         v$queryFolder <- parseDirPath(roots = c(root = '/'),input$queryFolder)
+        metadata(v$myOGRE)$queryFolder <- v$queryFolder
       })
       observeEvent(input$subjFolder,{updateTextInput(session,"subjFolderText",
                     value=parseDirPath(roots = c(root = '/'),input$subjFolder))
         v$subjFolder <- parseDirPath(roots = c(root = '/'),input$subjFolder)
+        metadata(v$myOGRE)$subjFolder <- v$subjFolder
       })
       observeEvent(input$queryFolderText,{
         v$queryFolder <- input$queryFolderText
+        metadata(v$myOGRE)$queryFolder <- v$queryFolder
       })
       observeEvent(input$subjFolderText,{
         v$subjFolder <- input$subjFolderText
+        metadata(v$myOGRE)$subjectFolder <- v$subjFolder
       })
       observeEvent(input$queriesToPlot, {
         v$queriesToPlot <- input$queriesToPlot
       })
       observeEvent(input$addHardDrive,{#Add data from hardDrive
-        if(v$queryFolder!=""){
-          v$myOGRE <- addGRanges(v$myOGRE,readQuery(v$myOGRE)[[1]],"query")}
-        if(v$subjectFolder!=""){
-          v$myOGRE <- readSubject(v$myOGRE)}
+        if(metadata(v$myOGRE)$queryFolder!=""){
+          v$myOGRE <- readDataSetFromFolder(v$myOGRE,"query")}
+        if(metadata(v$myOGRE)$subjectFolder!=""){
+          v$myOGRE <- readDataSetFromFolder(v$myOGRE,"subject")}
         updateTextAreaInput(session,"datasets",value = paste0(names(v$myOGRE),"\n"))
         output$status1 <- renderText({"Dataset added. Ready"})
       })
@@ -179,20 +200,15 @@ SHREC <- function(){
       
 
       observeEvent(input$runOGRE, { #start main processing----------------------
-        session$sendCustomMessage(type='jsCode', list(value = 'alert("Started calculation");'))
-        
-        #check if input is as file/annotationHub
-        if(!is.null(v$queryFolder)&!is.null(v$queryFolder)){#if dir supplied
-          #read folders
+        showNotification(paste("Analysis started"), duration = 3)
+        #session$sendCustomMessage(type='jsCode', list(value = 'alert("Started calculation");'))
+        if(isEmpty(v$myOGRE)){#if myOGRE is empty, use example data
           v$myOGRE <- OGREDataSetFromDir(queryFolder = v$queryFolder,
                                          subjectFolder = v$subjFolder)
           v$myOGRE <- loadAnnotations(v$myOGRE)
-          
-          
+          updateTextAreaInput(session,"datasets",value = paste0(names(v$myOGRE),"\n"))
         }
-        else{
-          
-        }
+
         #check if user required subsetting
         if(input$subsetIdentifier!="ID1\nID2\n..."){
           subsetIdentifier <- strsplit(input$subsetIdentifier,split = "\n")[[1]]
@@ -210,11 +226,13 @@ SHREC <- function(){
         }
         #number of queries to plot after processing
         getQueriesToPlot <- function(OGREDataSet,queriesToPlot){
-          if(queriesToPlot==1){
+          if(queriesToPlot=="All queries"){
             return(mcols(OGREDataSet[[1]])$ID)
-          }else if(queriesToPlot==2){
+          }else if(queriesToPlot=="First 5 queries"){
+            return(mcols(OGREDataSet[[1]])$ID[seq(5)])
+          }else if(queriesToPlot=="First 10 queries"){
             return(mcols(OGREDataSet[[1]])$ID[seq(10)])
-          }else if(queriesToPlot==3){
+          }else if(queriesToPlot=="User defined"){
             return(strsplit(input$queriesToPlotCustom,split = "\n")[[1]])
           }
         }
@@ -229,7 +247,7 @@ SHREC <- function(){
         #link plots to QueryIDs
         metadata(v$myOGRE)$sumDT[,queryID:=paste0("<a target='_blank' href='",
                     "gvizPlotsFolder","/",queryID,".pdf","'>",queryID,"</a>")]
-        session$sendCustomMessage(type='jsCode', list(value = 'alert("Finished calculation");'))
+        session$sendCustomMessage(type='jsCode', list(value = 'alert("Analysis finished");'))
         ###Tables
         callback <- JS( #for custom download button
           "var a = document.createElement('a');",
@@ -242,7 +260,7 @@ SHREC <- function(){
           "$('#download1').hide();"
         )
         
-        output$BestHits =DT::renderDT(server=TRUE,{
+        output$BestHits <- DT::renderDT(server=TRUE,{
           datatable(metadata(v$myOGRE)$sumDT,extensions = 'Buttons',callback = callback2,
                     escape=FALSE,
                     options = list(
@@ -308,10 +326,41 @@ SHREC <- function(){
                     ) #options = list(scrollY="300px",scrollX="300px", pageLength = 100, autoWidth = TRUE))
           )
         },server=FALSE)
-        output$summary <- DT::renderDT({datatable(metadata(myOGRE)$summaryDT[["includes0"]])})
-        output$summary2 <- DT::renderDT({datatable(metadata(myOGRE)$summaryDT[["excludes0"]])})
+        output$summary <- DT::renderDT({datatable(metadata(v$myOGRE)$summaryDT[["includes0"]])})
+        output$summary2 <- DT::renderDT({datatable(metadata(v$myOGRE)$summaryDT[["excludes0"]])})
         
+        output$status3 <- renderText({"Analysis finished"})
       })#end run
+      ###ucsc
+      output$geneLinkUCSC<- DT::renderDT(server=TRUE,{
+        req(input$runOGRE)
+        datatable(data.table::as.data.table(mcols(v$myOGRE[[1]])),
+          selection=list(mode = 'single', selected = c(1)),
+          options = list(
+          autoWidth=FALSE,
+          scrollX = TRUE,
+          scrollY = TRUE,
+          pageLength=15),rownames=FALSE)})
+      output$ucsc <-  renderUI({
+        req(input$runOGRE)
+        region <- v$myOGRE[[1]][input$geneLinkUCSC_rows_selected[[1]]]
+        rStart=start(region)
+        rEnd=end(region)
+        rChr=as.character(seqnames(region))
+        urlx <- paste0("https://genome.ucsc.edu/cgi-bin/hgTracks?db=hg19",
+                       "&position=chr",rChr,"%3A",rStart,"%2D",rEnd)
+        shiny::tags$iframe(src= urlx ,seamless = "seamless",width=1200,height=900,frameborder="no")
+      })
+      output$ucsc2 <-  renderUI({
+        req(input$runOGRE)
+        region <- v$myOGRE[[1]][input$geneLinkUCSC_rows_selected[[1]]]
+        rStart=start(region)
+        rEnd=end(region)
+        rChr=as.character(seqnames(region))
+        urlx <- paste0("https://genome.ucsc.edu/cgi-bin/hgTracks?db=hg38",
+                       "&position=chr",rChr,"%3A",rStart,"%2D",rEnd)
+        shiny::tags$iframe(src= urlx ,seamless = "seamless",width=1200,height=900,frameborder="no")
+      })
     }
   )
   )

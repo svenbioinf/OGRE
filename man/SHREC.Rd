@@ -6,6 +6,9 @@
 \usage{
 SHREC()
 }
+\value{
+Runs GUI, this function normally does not return
+}
 \description{
 \code{SHREC()} is a graphical user interface for OGRE
 }

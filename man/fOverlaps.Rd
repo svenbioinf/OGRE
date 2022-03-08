@@ -4,7 +4,7 @@
 \alias{fOverlaps}
 \title{Find overlaps}
 \usage{
-fOverlaps(OGREDataSet, selfHits = FALSE, ignoreStrand = TRUE)
+fOverlaps(OGREDataSet, selfHits = FALSE, ignoreStrand = TRUE, ...)
 }
 \arguments{
 \item{OGREDataSet}{A OGREDataSet.}
@@ -14,6 +14,8 @@ identical regions (with identical IDs) within datasets.}
 
 \item{ignoreStrand}{\code{logical} If TRUE (default) two regions with
 overlapping locations on different strands are considered an overlap hit.}
+
+\item{...}{Additional parameters, see \code{GenomicRanges::findOverlaps()}}
 }
 \value{
 OGREDataSet.
