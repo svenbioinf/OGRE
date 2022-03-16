@@ -95,6 +95,7 @@ OGREDataSetFromDir <- function(queryFolder,subjectFolder){
   metadata(OGREDataSet)$summaryDT <- list()
   metadata(OGREDataSet)$itracks <- list()
   metadata(OGREDataSet)$aH <- NULL #annotation hub
+  metadata(OGREDataSet)$covPlot <- NULL
   return(OGREDataSet)
 }
 
@@ -135,6 +136,7 @@ OGREDataSet <- function(){
   metadata(OGREDataSet)$summaryDT <- list()
   metadata(OGREDataSet)$itracks <- list()
   metadata(OGREDataSet)$aH <- NULL #annotation hub
+  metadata(OGREDataSet)$covPlot <- NULL
   return(OGREDataSet)
 }
 

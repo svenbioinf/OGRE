@@ -341,6 +341,9 @@ sumPlot <- function(OGREDataSet){
 #' and the second value to query end coordinates(bp). e.g. \code{c(-1000,1000)}
 #' zooms out, \code{c(1000,-1000)} zooms in and \code{c(-1000,0)} shifts the plot
 #' window to the left.
+#' @param nElements \code{integer} Number of elements that are displayed
+#' in each track (Default=25). High n.elements can lead to overplotting. Use
+#' \code{nElements=FALSE} to display all elements.
 #' @return OGREDataSet.
 #' @examples
 #' myOGRE <- makeExampleOGREDataSet()
@@ -352,14 +355,14 @@ gvizPlot <- function(OGREDataSet,query,
  gvizPlotsFolder = metadata(OGREDataSet)$gvizPlotsFolder,
  trackRegionLabels =setNames(rep("ID",length(OGREDataSet)),names(OGREDataSet)),
  trackShapes=setNames(rep("fixedArrow",length(OGREDataSet)),names(OGREDataSet)),
- showPlot=FALSE,extendPlot=c(-300,300)){
+ showPlot=FALSE,extendPlot=c(-300,300),nElements=25){
   queryID <- subjType <-  NULL
   for(q in query){
     message(paste0("Plotting query: ",q))
     #Subject tracks
     GvizSubjTracks<-lapply(metadata(OGREDataSet)$subjectNames,function(x){
       tmp<-metadata(OGREDataSet)$detailDT[subjType==x & queryID==q]
-      if(dim(tmp)[1]>25){tmp<-tmp[sample(seq_len(dim(tmp)[1]),size = 25),]}
+      if(is.numeric(nElements)){tmp<-tmp[sample(seq_len(dim(tmp)[1]),size = nElements),]}
       regionLabels<-mcols(OGREDataSet[[x]])[[trackRegionLabels[x]]][match(
         tmp$subjID,mcols(OGREDataSet[[x]])[["ID"]])]
       if(dim(tmp)[1]!=0){# if subjectType overlaps with query create track
@@ -437,6 +440,65 @@ plotHist <- function(OGREDataSet,plot0=FALSE){
     ylab(i)
     metadata(OGREDataSet)$hist[[i]] <- p
   }
+  return(OGREDataSet)
+}
+
+
+#' Coverage plot
+#'
+#' Generates coverage plots of all subject datasets and stores them as a list,
+#' that can be accessed by \code{metadata(OGREDataSet)$covPlot}                                                                                                                                                                                           
+#' @import ggplot2 
+#' @param OGREDataSet An OGREDataSet
+#' @param datasets \code{character vector} of subject dataset names. Default: 
+#' Generates a coverage plots for all subjects
+#' @param nbin Number of bins
+#' @return OGREDataSet.
+#' @examples 
+#' myOGRE <- makeExampleOGREDataSet()
+#' myOGRE <- loadAnnotations(myOGRE)
+#' myOGRE <- fOverlaps(myOGRE)
+#' myOGRE <- covPlot(myOGRE)
+#' metadata(myOGRE)$covPlot
+#' @export
+covPlot <- function(OGREDataSet,
+                    datasets=names(OGREDataSet)[seq(2,length(OGREDataSet))],
+                    nbin=100){
+  message("Generating coverage plot(s), this might take a while...")
+ #filter out queries<nbin
+#regions that are at least nbin nucleotides long 
+regions <-mcols(OGREDataSet[[1]][width(OGREDataSet[[1]])>=nbin])$ID
+#& have overlaps
+regions <- regions[regions%in%metadata(OGREDataSet)$detailDT$queryID]
+for(d in datasets){
+  regions <- regions[regions%in%metadata(OGREDataSet)$detailDT[subjType==d][["queryID"]]]
+  cov <- GenomicRanges::coverage(OGREDataSet[[d]])
+  covDT <- sapply(unique(regions),function(r){
+    dt <- metadata(OGREDataSet)$detailDT[queryID==r&subjType==d,]
+    rCov <- as.integer(cov[[dt$queryChr[1]]])
+    rCov <- rCov[seq(dt$queryStart[1],dt$queryEnd[1])] #contains NA at start/
+    #end of regions without overlapping element
+    rCov[is.na(rCov)] <- 0#NA set to 0
+    bins=ggplot2::cut_interval(seq(1,length(rCov)), n = nbin) #set bins
+    binsCov=as.vector(by(rCov,bins,sum)) #bin overlaps are summed up
+    binsCov
+  })
+  covDT=data.table::as.data.table(t(covDT),keep.rownames = "ID")
+  covDT[,strand:=as.vector(strand(OGREDataSet[[1]]))[match(ID,mcols(OGREDataSet[[1]])$ID)]] 
+  covDT_for <- subset(covDT[strand=="+",],select=-c(strand,ID))
+  covDT_rev <- subset(covDT[strand=="-",],select=-c(strand,ID))
+  covDT_rev <- rev(covDT_rev) #reverse minus strand
+  covDT_both <- subset(covDT[strand=="*",],select=-c(strand,ID))
+  covDT <- rbind(covDT_for,covDT_rev,covDT_both)
+  covDT <- colSums(covDT) #column summarization for now
+  #covDT <- colSums(covDT_for) #add support for forward/reverse plots
+  #covDT <- colSums(covDT_rev)
+  dt=data.table::data.table(x=seq(1,length(covDT)),Coverage=covDT)
+  p <- ggplot(dt, aes(x=x, y=Coverage)) + xlab("Region bins")+theme_classic()+
+    theme(axis.text.y=element_blank(),axis.ticks.y=element_blank())+
+    geom_smooth(se=FALSE)+ylab("Overlap coverage")
+  metadata(OGREDataSet)$covPlot[[d]] <- (list(plot=p,data=dt))
+}
   return(OGREDataSet)
 }
 #' Calculates min/max/average overlap
@@ -569,6 +631,10 @@ addDataSetFromHub <- function(OGREDataSet,dataSet,type){
   x <- GenomeInfoDb::dropSeqlevels(x,"MT","coarse") 
   genome(x) <- "hg19"
   mData <- metadata(OGREDataSet)
+  if(dataSet%in%names(OGREDataSet)){
+    dataSet <- tail(make.unique(c(names(OGREDataSet),dataSet)),n=1)
+    warning("Renamed datasets cause of duplicated labels")
+    }
   if(type=="query"){ #add dataSet as query or subject
     OGREDataSet <- c(GRangesList(x),OGREDataSet) #add x at first position
     names(OGREDataSet)[1] <- dataSet
@@ -579,8 +645,8 @@ addDataSetFromHub <- function(OGREDataSet,dataSet,type){
   if(length(OGREDataSet)>1){ #update subject names
   metadata(OGREDataSet)$subjectNames<-names(
     OGREDataSet[seq(2,length(OGREDataSet))])
-  }
-  }
+  }}
+  message(paste0("Added ",dataSet))
   return(OGREDataSet)
 }
 
@@ -615,7 +681,12 @@ addGRanges <- function(OGREDataSet,dataSet,type,label=NULL){
   assertthat::assert_that(length(dataSet)!=0,
                           msg="DataSet has no ranges.")
   mData <- metadata(OGREDataSet)
-  if(is.null(label))label <- deparse(substitute(dataSet))
+  if(is.null(label))label <- deparse(substitute(dataSet)) #if label not supplied
+  if(label%in%names(OGREDataSet)){
+    label <- tail(make.unique(c(names(OGREDataSet()),label)),n=1)
+    warning("Renamed datasets cause of duplicated labels")
+  }
+  
   if(type=="query"){
     OGREDataSet <- c(GRangesList(dataSet),OGREDataSet)
     names(OGREDataSet)[1] <- label

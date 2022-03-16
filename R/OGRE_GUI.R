@@ -80,6 +80,11 @@ SHREC <- function(){
                                choices = listPredefinedDataSets()),
             actionButton("addAnnotationHub","Add datasets")
             ),
+            box(title = "Settings",
+                checkboxGroupInput("checkboxOverlap", label = ("Overlap"), 
+                                   choices = c("selfHits","ignoreStrand"),
+                                   selected = c("ignoreStrand")),
+                ),
             box(title = "Manipulate datasets",
                 solidHeader=TRUE,splitLayout(
                   textAreaInput("subsetIdentifier", "Subset dataset by ID", rows = 3,value = "ID1\nID2\n..."),
@@ -112,10 +117,20 @@ SHREC <- function(){
                   box(title = "Histogram",
                       plotOutput(outputId = "histogram"),
                       uiOutput("selectHist")
+                  ),
+                  box(title = "Coverage",
+                      plotOutput(outputId = "coverage"),
+                      uiOutput("selectCoverage")
                   )
           ),
           tabItem(tabName = "tables",
-                  box(title="Overlap numbers", DT::DTOutput("quickDT")),
+                  tabBox(
+                    title = "Overlaps",
+                    id = "tabset2",
+                    tabPanel("Overlap checkbox",DT::DTOutput("overlapCheckbox")),
+                    tabPanel("Overlap numbers",DT::DTOutput("quickDT")),
+                  ),
+                  
                   tabBox(
                     title = "Overlap statistics",
                     id = "tabset1",
@@ -151,7 +166,9 @@ SHREC <- function(){
                          queryFolder=NULL, 
                          subjFolder=NULL,
                          queriesToPlot=NULL,
-                         status="Ready")
+                         status="Ready",
+                         selfHits=FALSE,
+                         ignoreStrand=TRUE)
       
       shinyFiles::shinyDirChoose(input,id='queryFolder',roots = c(root = '/'))
       shinyFiles::shinyDirChoose(input,id='subjFolder',roots = c(root = '/'))
@@ -194,7 +211,12 @@ SHREC <- function(){
         }}
         updateTextAreaInput(session,"datasets",value = paste0(names(v$myOGRE),"\n"))
         output$status2 <- renderText({"Dataset added. Ready"})
-        
+      })
+      observe({
+        if("selfHits"%in%input$checkboxOverlap){v$selfHits <- TRUE}
+        else{v$selfHits <- FALSE}
+        if("ignoreStrand"%in%input$checkboxOverlap){v$ignoreStrand <- TRUE}
+        else{v$ignoreStrand <- FALSE}
       })
       
       
@@ -236,9 +258,10 @@ SHREC <- function(){
             return(strsplit(input$queriesToPlotCustom,split = "\n")[[1]])
           }
         }
-        v$myOGRE <- fOverlaps(v$myOGRE)
+        v$myOGRE <- fOverlaps(v$myOGRE,selfHits = v$selfHits,ignoreStrand = v$ignoreStrand)
         v$myOGRE <- sumPlot(v$myOGRE)
         v$myOGRE <- plotHist(v$myOGRE)
+        v$myOGRE <- covPlot(v$myOGRE)
         v$myOGRE <- summarizeOverlap(v$myOGRE)
         v$myOGRE <- gvizPlot(v$myOGRE,getQueriesToPlot(v$myOGRE,v$queriesToPlot),
                              showPlot = FALSE,
@@ -310,11 +333,32 @@ SHREC <- function(){
         output$selectHist = renderUI({selectInput("plot", "Choose plot:", 
                     choices=names(metadata(v$myOGRE)$hist))})
         output$histogram <- renderPlot({metadata(v$myOGRE)$hist[[input$plot]]})
+        output$selectCoverage = renderUI({selectInput("plotValue", "Choose plot:", 
+                    choices=names(metadata(v$myOGRE)$covPlot))})
+        output$coverage <- renderPlot({metadata(v$myOGRE)$covPlot[[input$plotValue]]})
         ###Tables
         output$quickDT = DT::renderDT({
           metadata(v$myOGRE)$quickDT[,queryID:=paste0("<a target='_blank' href='",
             "gvizPlotsFolder","/",queryID,".pdf","'>",queryID,"</a>")]
           datatable(metadata(v$myOGRE)$quickDT,extensions = 'Buttons',escape = FALSE,
+                    options = list(
+                      dom = 'Bfrtip',
+                      autoWidth=FALSE,
+                      scrollX = TRUE,
+                      scrollY="40vh",
+                      paging = FALSE,
+                      #columnDefs = list(list(width = '50', targets = c(1,2,3))),
+                      buttons = c('copy', 'csv', 'excel', 'pdf', 'print')
+                    ) #options = list(scrollY="300px",scrollX="300px", pageLength = 100, autoWidth = TRUE))
+          )
+        },server=FALSE)
+        output$overlapCheckbox = DT::renderDT({
+          queryID <- metadata(v$myOGRE)$quickDT$queryID
+          x <-metadata(v$myOGRE)$quickDT[,!"queryID",with=FALSE]                     
+          x[x>0] <- as.character(icon("check",lib = "glyphicon"))
+          x[x==0] <- as.character(icon("minus",lib = "glyphicon"))
+          x <- cbind(queryID,x)
+          datatable(x,extensions = 'Buttons',escape = FALSE,
                     options = list(
                       dom = 'Bfrtip',
                       autoWidth=FALSE,

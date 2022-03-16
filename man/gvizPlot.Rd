@@ -11,7 +11,8 @@ gvizPlot(
   trackRegionLabels = setNames(rep("ID", length(OGREDataSet)), names(OGREDataSet)),
   trackShapes = setNames(rep("fixedArrow", length(OGREDataSet)), names(OGREDataSet)),
   showPlot = FALSE,
-  extendPlot = c(-300, 300)
+  extendPlot = c(-300, 300),
+  nElements = 25
 )
 }
 \arguments{
@@ -50,6 +51,10 @@ the plot window to the left or right by adding the first value to query start
 and the second value to query end coordinates(bp). e.g. \code{c(-1000,1000)}
 zooms out, \code{c(1000,-1000)} zooms in and \code{c(-1000,0)} shifts the plot
 window to the left.}
+
+\item{nElements}{\code{integer} Number of elements that are displayed
+in each track (Default=25). High n.elements can lead to overplotting. Use
+\code{nElements=FALSE} to display all elements.}
 }
 \value{
 OGREDataSet.
