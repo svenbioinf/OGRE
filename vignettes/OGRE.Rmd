@@ -8,7 +8,9 @@ abstract: >
   genetic variation (SNPs, mutations), regulatory elements (TFBS, promoters,
   CpG islands) and basically all types of NGS output from sequencing
   experiments. After overlap calculation, key numbers help analyse the extend
-  of overlaps which can also be visualized at a genomic level.
+  of overlaps which can also be visualized at a genomic level. To start OGRE's
+  GUI use function SHREC() in your R console. Find additional information on 
+  [github](https://github.com/svenbioinf/OGRE/).
   OGRE package version: `r packageVersion("OGRE")`
 output:
   rmarkdown::html_document:
@@ -58,7 +60,7 @@ library(OGRE)
 
 # Quick start- load datasets from hard drive
 
-To start up OGRE you have to generate a `OGREDataSet` that is used to store your
+To start up OGRE you have to generate an `OGREDataSet` that is used to store your
 datasets and additional information about the analysis that you are conducting.
 Query and subjects files can be conveniently stored in their own folders as
 GRanges objects in form of stored .rds / .RDS files. We point OGRE to the
@@ -101,6 +103,7 @@ myOGRE
 To find overlaps between your query and subject datasets we call `fOverlaps()`.
 Internally OGRE makes use of the `GenomicRanges` package to calculate full and 
 partial overlap as schematically shown.
+
 <br />
 ```{r echo=FALSE, out.width='70%',fig.align='center'}
 knitr::include_graphics(file.path(vigDir,'overlap.png'))
@@ -110,7 +113,7 @@ Any existing subject - query hits are then listed in `detailDT` and stored as a
 `data.table`.
 ```{r fOverlaps, message=TRUE, echo=TRUE,warning=TRUE}
 myOGRE <- fOverlaps(myOGRE)
-head(metadata(myOGRE)$detailDT)
+head(metadata(myOGRE)$detailDT,n=2)
 ```
 The summary plot provides us with useful information about the number of 
 overlaps between your datasets. 
@@ -126,6 +129,32 @@ dataset files.
  myOGRE <- gvizPlot(myOGRE,"ENSG00000142168",showPlot = TRUE,trackRegionLabels = setNames(c("name","name"),c("genes","CGI")))#OLIG1
 ```
 
+The overlap distribution can be generated with `summarizeOverlap(myOGRE)` and outputs
+a table with informative statistics such as minimum, lower quantile, mean, median, 
+upper quantile, and maximum number of overlaps per region and per dataset.
+Overlap distribution can also be displayed as histograms using `plotHist(myOGRE)`
+and accessed by `metadata(myOGRE)$hist` and `metadata(myOGRE)$summaryDT`.
+Two tables / plots are generated. The first one showing numbers for regions with
+and without overlap and the second one showing numbers only for regions with overlap
+by excluding all others.
+When focusing only on regions with overlap, we see that genes have on average
+(median) 54 TFBS overlaps.
+```{r summarizeOverlap, message=TRUE, echo=TRUE,warning=FALSE}
+ myOGRE <- summarizeOverlap(myOGRE) 
+ myOGRE <- plotHist(myOGRE)
+ metadata(myOGRE)$summaryDT
+ metadata(myOGRE)$hist$TFBS
+```
+
+It is possible to create an average coverage profile of all gene-datasets overlaps, 
+split in 100 bins, which represent gene bodies of all 242 genes. The plot can be 
+accessed by `metadata(myOGRE)$covPlot$TFBS` and the resulting profile shows
+an accumulation of TFBS around gene start and end positions.
+```{r coveragePlot, message=TRUE, echo=TRUE,warning=FALSE}
+ myOGRE <- covPlot(myOGRE) 
+ metadata(myOGRE)$covPlot$TFBS$plot
+```
+
 #   Quick start- load datasets from AnnotationHub
 
 AnnotationHub offers a wide range of annotated datasets which can be manually
@@ -138,14 +167,15 @@ We start by creating an empty OGREDataSet and attaching one dataset after anothe
 whereby one query and two subjects are added. The datasets are now ready for
 further analysis.
 
-```{r datasetsFromAnnotationHub}
+```{r datasetsFromAnnotationHub,eval=FALSE}
 myOGRE <- OGREDataSet() 
 listPredefinedDataSets()
 myOGRE <- addDataSetFromHub(myOGRE,"protCodingGenes","query")
 myOGRE <- addDataSetFromHub(myOGRE,"CGI","subject")
 myOGRE <- addDataSetFromHub(myOGRE,"TFBS","subject")
-
+names(myOGRE)
 ```
+As you can see, the three datasets proteinCodingGenes, CGI and TFBS are stored within OGRE. You can then continue with overlap analysis using `fOverlaps()`.
 
 
 #   Quick start- load user defined GRanges datasets
@@ -153,13 +183,7 @@ myOGRE <- addDataSetFromHub(myOGRE,"TFBS","subject")
 To offer more flexibility `addGRanges()` enables the user to attach additional
 datasets to OGRE in form of GRanges objects. Again we start by creating an 
 empty OGREDataSet and generate an example GRanges object which is then added to
-your OGREDataSet either as "query" or "subject". Datasets from external sources
-are often stored as text files like .gff or .gtf files. To make them work with 
-OGRE we recommend reading them in with `read.table()` or `data.table::fread()` to
-obtain a data frame object. After making sure the dataset complies with the
-requirements in section [How to add custom GRanges datasets?] 
-`GenomicRanges::makeGRangesFromDataFrame()` offers a convenient way to generate
-GRanges object from data frames.
+your OGREDataSet either as "query" or "subject". 
 
 ```{r datasetsUserGRanges,eval=FALSE}
 myOGRE <- OGREDataSet()
@@ -203,11 +227,37 @@ Use `GenomeInfoDb::seqinfo()` on any GRanges object to get/set chromosome inform
 
 Use `S4Vectors::mcols()` on any GRanges object to get/set metadata information
 
+##    How to add datasets stored as .gff files?
+
+Datasets from external sources are often stored as .gff (v2&v3) files. Once those
+files exist in the query or subject folder and their attribute columns contain 
+"ID" and "name" information, OGRE tries to read them in.
+```{r addgff,eval=FALSE}
+myOGRE <- OGREDataSetFromDir(queryFolder = "pathToQueryFolder",
+                             subjectFolder = "pathToSubjectFolder")
+myOGRE <- loadAnnotations(myOGRE)
+```
+
+##    How to add datasets stored as tabular files?
+
+Datasets stored as tabular files like .csv or .bed can need some preprocessing for
+them work with OGRE. We recommend reading them in with `read.table()` or 
+`data.table::fread()` to obtain a data frame object. After making sure the dataset 
+complies with the requirements in section [How to add custom GRanges datasets?], 
+`GenomicRanges::makeGRangesFromDataFrame()` offers a convenient way to generate
+GRanges object from data frames.
+
 ##    What type of overlaps are reported?
 
 Both, partial overlap, where only a part of two (or more) regions are overlapping
-and complete overlap, where one region is completely overlapped by another are
+and complete overlap, where one region is completely overlapped by another, are
 reported.
+
+##    How to change dataset names?
+
+OGRE automatically infers dataset names based on your file names. You can either
+change your file names before you start OGRE or you can use 
+`names(myOGRE) <- c("NewName1", "NewName2","...")` after you read in your datasets.
 
 #   Session info
 

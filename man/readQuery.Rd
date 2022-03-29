@@ -14,6 +14,6 @@ A OGREDataSet.
 }
 \description{
 \code{\link[=readQuery]{readQuery()}} scanns \code{queryFolder} for a \code{GRanges} object stored as .RDS/.rds
-file and attaches it to the OGREDataSet.
+or .gff .GFF file and attaches it to the OGREDataSet.
 }
 \keyword{internal}

@@ -25,20 +25,30 @@ remotes::install_github("svenbioinf/OGRE")
 
 OGRE depends on the following packages:<br>
 
+- IRanges<br>
 - GenomicRanges<br>
 - S4Vectors<br>
 - methods<br>
 - data.table<br>
 - assertthat<br>
 - ggplot2<br>
-- IRanges<br>
 - Gviz<br>
+- AnnotationHub<br>
+- shiny<br>
+- shinyFiles<br>
+- DT<br>
+- rtracklayer<br>
+- shinydashboard<br>
+- shinyBS<br>
+- tidyr<br>
+- GenomeInfoDb<br>
 
-those can be installed with:
+if not automatically installed, those can be installed with:
 ```{r}
 if (!requireNamespace("BiocManager", quietly = TRUE))
   install.packages("BiocManager")
 BiocManager::install(c(
+"IRanges",
 "GenomicRanges",
 "S4Vectors",
 "methods",
@@ -46,7 +56,17 @@ BiocManager::install(c(
 "assertthat",
 "ggplot2",
 "IRanges",
-"Gviz"))
+"Gviz",
+"AnnotationHub",
+"shiny",
+"shinyFiles",
+"DT",
+"rtracklayer",
+"shinydashboard",
+"shinyBS",
+"tidyr",
+"GenomeInfoDb"
+))
 ```    
 
 The OGRE package itself can then be loaded with the following commands:
@@ -57,7 +77,7 @@ vignette("OGRE") #some information on how to use the package
 
 ## Installation via Bioconductor
 
-(Once OGRE is available on Bioconductor)
+(Once OGRE is available on Bioconductor, if not- use devel version below.)
 
 Start R and enter:
 
@@ -69,7 +89,18 @@ BiocManager::install("OGRE")
 library(OGRE)    # load package
 vignette("OGRE") # some information on how to use the package
 ```
+## Installation via Bioconductor (develop version)
 
+Start R and enter:
+
+```{r}
+if (!requireNamespace("BiocManager", quietly = TRUE))
+    install.packages("BiocManager")
+
+BiocManager::install("OGRE",version = "devel")
+library(OGRE)    # load package
+vignette("OGRE") # some information on how to use the package
+```
 
 
 

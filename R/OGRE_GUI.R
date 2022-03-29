@@ -2,7 +2,7 @@
 #'
 #' `SHREC()` is a graphical user interface for OGRE
 #' @import shiny 
-#' @import data.table
+#' @rawNamespace import(data.table, except = c(shift,second,first))
 #' @importFrom DT renderDT datatable JS
 #' @importFrom shinyFiles shinyDirButton shinyDirChoose parseDirPath
 #' @importFrom shinyBS bsTooltip
@@ -378,7 +378,7 @@ SHREC <- function(){
       ###ucsc
       output$geneLinkUCSC<- DT::renderDT(server=TRUE,{
         req(input$runOGRE)
-        datatable(data.table::as.data.table(mcols(v$myOGRE[[1]])),
+        datatable(as.data.table(mcols(v$myOGRE[[1]])),
           selection=list(mode = 'single', selected = c(1)),
           options = list(
           autoWidth=FALSE,

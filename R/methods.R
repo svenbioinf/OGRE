@@ -6,7 +6,9 @@
 #' files. Each region needs chromosome, start, end and strand information.
 #' A unique ID and a name column must be present in the `GenomicRanges` object 
 #' metadata. OGRE searches for the query file in your query folder and any 
-#' number of subject files in your subjects folder.
+#' number of subject files in your subjects folder. Alternatively, .gff (v2&v3) files
+#' in the query or subject folder with attribute columns containing "ID" and "name" 
+#' information are read in by OGRE.
 #' @param OGREDataSet A OGREDataSet.
 #' @return A OGREDataSet.
 #' @examples
@@ -26,7 +28,8 @@ loadAnnotations <- function(OGREDataSet){
 #' Read query dataset
 #'
 #' [readQuery()] scanns `queryFolder` for a `GRanges` object stored as .RDS/.rds
-#' file and attaches it to the OGREDataSet.
+#' or .gff .GFF file and attaches it to the OGREDataSet.
+#' @importFrom rtracklayer import.gff
 #' @param OGREDataSet A OGREDataSet.
 #' @return A OGREDataSet.
 #' @keywords internal
@@ -39,7 +42,14 @@ readQuery=function(OGREDataSet){
   }else{ #read queryFolder
     queryPath <- list.files(metadata(OGREDataSet)$queryFolder,full.names = TRUE)
     queryName <- tools::file_path_sans_ext(list.files(metadata(OGREDataSet)$queryFolder))
+    if(grepl("rds",queryPath,ignore.case=TRUE)){
     OGREDataSet[[queryName]]<- readRDS(queryPath)
+    }
+    else if(grepl("gff",queryPath,ignore.case=TRUE)){ #read in .gff
+      OGREDataSet[[queryName]] <- rtracklayer::import.gff(queryPath)%>%
+      GenomeInfoDb::keepStandardChromosomes("Homo_sapiens",pruning.mode="coarse")
+      GenomeInfoDb::seqlevelsStyle(OGREDataSet[[queryName]]) <- "Ensembl"
+    }
   }
   assertthat::assert_that(c("ID")%in%names(mcols(OGREDataSet[[queryName]])),
                           msg="Query must contain ID column.")
@@ -52,8 +62,8 @@ readQuery=function(OGREDataSet){
 }
 #' Read subject datasets
 #'
-#' [readSubject()] scanns `SubjectFolder` for any `GRanges` objects stored as 
-#' .RDS/.rds files and attaches them to the OGREDataSet.
+#' [readSubject()] scanns `SubjectFolder` for `GRanges` objects stored as .RDS/.rds
+#' or .gff .GFF files and attaches them to the OGREDataSet.
 #' @param OGREDataSet A OGREDataSet.
 #' @return A OGREDataSet.
 #' @keywords internal
@@ -61,11 +71,18 @@ readSubject=function(OGREDataSet){
   assertthat::assert_that(length(list.files(metadata(OGREDataSet)$subjectFolder))>0,
                           msg="Subject folder is empty!")
   message("Reading subject datasets... ")
-  #read queryFolder
+  #read SubjectFolder
     subjectPath <- list.files(metadata(OGREDataSet)$subjectFolder,full.names = TRUE)
     subjectName <- tools::file_path_sans_ext(list.files(metadata(OGREDataSet)$subjectFolder))
     OGREDataSet <- c(OGREDataSet,mapply(function(x,y){
-      tmp=readRDS(y)
+      if(grepl("rds",y,ignore.case=TRUE)){
+        tmp=readRDS(y)
+      }
+      else if(grepl("gff",y,ignore.case=TRUE)){ #read in .gff
+        tmp <- rtracklayer::import.gff(y)%>%
+          GenomeInfoDb::keepStandardChromosomes("Homo_sapiens",pruning.mode="coarse")
+        GenomeInfoDb::seqlevelsStyle(tmp) <- "Ensembl"
+      }
       assertthat::assert_that(c("ID")%in%names(mcols(tmp)),msg="Subject must contain ID column.")
       assertthat::assert_that(!any(duplicated(tmp$ID)),msg="ID column must be unique.")
       assertthat::assert_that(length(tmp)!=0,msg=paste0("Dataset has no ranges: ",x))
@@ -362,7 +379,8 @@ gvizPlot <- function(OGREDataSet,query,
     #Subject tracks
     GvizSubjTracks<-lapply(metadata(OGREDataSet)$subjectNames,function(x){
       tmp<-metadata(OGREDataSet)$detailDT[subjType==x & queryID==q]
-      if(is.numeric(nElements)){tmp<-tmp[sample(seq_len(dim(tmp)[1]),size = nElements),]}
+      if(is.numeric(nElements&dim(tmp)[1]>nElements)){tmp<-tmp[sample
+                            (seq_len(dim(tmp)[1]),size = nElements),]}
       regionLabels<-mcols(OGREDataSet[[x]])[[trackRegionLabels[x]]][match(
         tmp$subjID,mcols(OGREDataSet[[x]])[["ID"]])]
       if(dim(tmp)[1]!=0){# if subjectType overlaps with query create track
@@ -443,12 +461,14 @@ plotHist <- function(OGREDataSet,plot0=FALSE){
   return(OGREDataSet)
 }
 
-
+.datatable.aware=TRUE #to use "[" without importing whole data.table
 #' Coverage plot
 #'
 #' Generates coverage plots of all subject datasets and stores them as a list,
 #' that can be accessed by \code{metadata(OGREDataSet)$covPlot}                                                                                                                                                                                           
 #' @import ggplot2 
+#' @rawNamespace import(data.table, except = c(shift,second,first))
+#' @importFrom tidyr %>%
 #' @param OGREDataSet An OGREDataSet
 #' @param datasets \code{character vector} of subject dataset names. Default: 
 #' Generates a coverage plots for all subjects
@@ -462,45 +482,43 @@ plotHist <- function(OGREDataSet,plot0=FALSE){
 #' metadata(myOGRE)$covPlot
 #' @export
 covPlot <- function(OGREDataSet,
-                    datasets=names(OGREDataSet)[seq(2,length(OGREDataSet))],
-                    nbin=100){
+                     datasets=names(OGREDataSet)[seq(2,length(OGREDataSet))],
+                     nbin=100){
   message("Generating coverage plot(s), this might take a while...")
- #filter out queries<nbin
-#regions that are at least nbin nucleotides long 
-regions <-mcols(OGREDataSet[[1]][width(OGREDataSet[[1]])>=nbin])$ID
-#& have overlaps
-regions <- regions[regions%in%metadata(OGREDataSet)$detailDT$queryID]
-for(d in datasets){
-  regions <- regions[regions%in%metadata(OGREDataSet)$detailDT[subjType==d][["queryID"]]]
-  cov <- GenomicRanges::coverage(OGREDataSet[[d]])
-  covDT <- sapply(unique(regions),function(r){
-    dt <- metadata(OGREDataSet)$detailDT[queryID==r&subjType==d,]
-    rCov <- as.integer(cov[[dt$queryChr[1]]])
-    rCov <- rCov[seq(dt$queryStart[1],dt$queryEnd[1])] #contains NA at start/
-    #end of regions without overlapping element
-    rCov[is.na(rCov)] <- 0#NA set to 0
-    bins=ggplot2::cut_interval(seq(1,length(rCov)), n = nbin) #set bins
-    binsCov=as.vector(by(rCov,bins,sum)) #bin overlaps are summed up
-    binsCov
-  })
-  covDT=data.table::as.data.table(t(covDT),keep.rownames = "ID")
-  covDT[,strand:=as.vector(strand(OGREDataSet[[1]]))[match(ID,mcols(OGREDataSet[[1]])$ID)]] 
-  covDT_for <- subset(covDT[strand=="+",],select=-c(strand,ID))
-  covDT_rev <- subset(covDT[strand=="-",],select=-c(strand,ID))
-  covDT_rev <- rev(covDT_rev) #reverse minus strand
-  covDT_both <- subset(covDT[strand=="*",],select=-c(strand,ID))
-  covDT <- rbind(covDT_for,covDT_rev,covDT_both)
-  covDT <- colSums(covDT) #column summarization for now
-  #covDT <- colSums(covDT_for) #add support for forward/reverse plots
-  #covDT <- colSums(covDT_rev)
-  dt=data.table::data.table(x=seq(1,length(covDT)),Coverage=covDT)
-  p <- ggplot(dt, aes(x=x, y=Coverage)) + xlab("Region bins")+theme_classic()+
-    theme(axis.text.y=element_blank(),axis.ticks.y=element_blank())+
-    geom_smooth(se=FALSE)+ylab("Overlap coverage")
-  metadata(OGREDataSet)$covPlot[[d]] <- (list(plot=p,data=dt))
-}
+  #filter out queries<nbin
+  #regions that are at least nbin nucleotides long 
+  message("Excluding regions with nucleotides<nbin")
+  regions <-mcols(OGREDataSet[[1]][width(OGREDataSet[[1]])>=nbin])$ID
+  #& have overlaps
+  regions <- regions[regions%in%metadata(OGREDataSet)$detailDT$queryID]
+  for(d in datasets){
+    regions <- regions[regions%in%metadata(OGREDataSet)$detailDT[subjType==d][["queryID"]]]
+    cov <- GenomicRanges::coverage(OGREDataSet[[d]])
+    covDT <- sapply(unique(regions),function(r){
+      cor <- metadata(OGREDataSet)$detailDT[queryID==r&subjType==d,]
+      dt <- data.table(rCov=cov[[cor$queryChr[1]]][seq(cor$queryStart[1],cor$queryEnd[1])]%>%as.numeric()) 
+      dt[,bins:=ggplot2::cut_interval(seq(1,length(rCov)), n = nbin)]#set bins)
+      dt[,sum(rCov),by=bins][["V1"]] #bin overlaps are summed up
+    })
+    covDT <- as.data.table(t(covDT),keep.rownames = "ID")
+    covDT[,strand:=as.vector(strand(OGREDataSet[[1]]))[match(ID,mcols(OGREDataSet[[1]])$ID)]] 
+    covDT_for <- subset(covDT[strand=="+",],select=-c(strand,ID))
+    covDT_rev <- subset(covDT[strand=="-",],select=-c(strand,ID))
+    covDT_rev <- rev(covDT_rev) #reverse minus strand
+    covDT_both <- subset(covDT[strand=="*",],select=-c(strand,ID))
+    covDT <- rbind(covDT_for,covDT_rev,covDT_both)
+    covDT <- colSums(covDT) #column summarization for now
+    #covDT <- colSums(covDT_for) #add support for forward/reverse plots
+    #covDT <- colSums(covDT_rev)
+    dt <- data.table(x=seq(1,length(covDT)),Coverage=covDT)
+    p <- ggplot(dt, aes(x=x, y=Coverage)) + xlab("Region bins")+theme_classic()+
+      theme(axis.text.y=element_blank(),axis.ticks.y=element_blank())+
+      geom_smooth(se=FALSE)+ylab("Overlap coverage")
+    metadata(OGREDataSet)$covPlot[[d]] <- (list(plot=p,data=dt))
+  }
   return(OGREDataSet)
 }
+
 #' Calculates min/max/average overlap
 #' 
 #' Calculates min/max/average overlap for all datasets using \code{summary()}. 
@@ -565,7 +583,7 @@ listPredefinedDataSets <- function(){
 #' dataSets of `listPredefinedDataSets()` to a OGREDataSet.Those are taken from 
 #' AnnotationHub and are ready to use for OGRE. Additional information on 
 #' dataSets can be found here \code{\link{listPredefinedDataSets}}. 
-#' @importFrom data.table fread data.table as.data.table
+#' @rawNamespace import(data.table, except = c(shift,second,first))
 #' @importFrom assertthat assert_that
 #' @importFrom AnnotationHub AnnotationHub
 #' @importFrom GenomeInfoDb keepStandardChromosomes seqlevelsStyle dropSeqlevels
