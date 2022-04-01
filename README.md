@@ -12,6 +12,14 @@ Any regions can be supplied i.e. genes, SNPs, or reads from sequencing experimen
 Key numbers help analyse the extend of overlaps which can also be visualized at a genomic level.
  
 
+
+https://user-images.githubusercontent.com/68910402/161344697-da98cb01-4104-41b2-b441-4ef0dbfecd51.mp4
+
+
+
+
+
+
 ## Installation via GitHub
 For installing OGRE by GitHub use the install_github() function.
 
