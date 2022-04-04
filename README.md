@@ -11,7 +11,7 @@ The OGRE package calculates overlap between user defined genomic region datasets
 Any regions can be supplied i.e. genes, SNPs, or reads from sequencing experiments. 
 Key numbers help analyse the extend of overlaps which can also be visualized at a genomic level.
  
-[Click here to download OGRE Vignette as PDF](https://github.com/svenbioinf/OGRE/files/8412826/OGRE_Vignette.pdf)
+[Click here to download OGRE's Vignette as PDF](https://github.com/svenbioinf/OGRE/files/8412826/OGRE_Vignette.pdf)
 
 
 https://user-images.githubusercontent.com/68910402/161344697-da98cb01-4104-41b2-b441-4ef0dbfecd51.mp4
