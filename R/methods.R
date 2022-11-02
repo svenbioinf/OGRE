@@ -454,8 +454,8 @@ plotHist <- function(OGREDataSet,plot0=FALSE){
                linetype="dashed",size=1.5)+
     scale_x_continuous(trans = 'log10')+
     theme(legend.position="top")+theme_classic()+
-    theme(axis.title.x=element_blank(),text = element_text(size = 20))+
-    ylab(i)
+    theme(text = element_text(size = 20))+
+    xlab(paste(i,"number"))+ylab(paste(i,"frequency"))
     metadata(OGREDataSet)$hist[[i]] <- p
   }
   return(OGREDataSet)

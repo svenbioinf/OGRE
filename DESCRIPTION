@@ -16,7 +16,7 @@ Encoding: UTF-8
 LazyData: false
 Roxygen: list(markdown = TRUE)
 VignetteBuilder: knitr
-RoxygenNote: 7.1.2
+RoxygenNote: 7.2.1
 Imports: GenomicRanges, methods, data.table, assertthat, ggplot2, Gviz, IRanges,
     AnnotationHub, grDevices, stats, GenomeInfoDb, shiny, shinyFiles, DT,
     rtracklayer, shinydashboard, shinyBS,tidyr

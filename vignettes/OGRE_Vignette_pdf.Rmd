@@ -2,27 +2,17 @@
 title: "The OGRE user guide"
 author: "Sven Berres"
 date: "`r format(Sys.Date(), '%m/%d/%Y')`"
-abstract: >
-  OGRE calculates overlap between user defined annotated genomic region
-  datasets. Any regions can be supplied such as public annotations (genes),
-  genetic variation (SNPs, mutations), regulatory elements (TFBS, promoters,
-  CpG islands) and basically all types of NGS output from sequencing
-  experiments. After overlap calculation, key numbers help analyse the extend
-  of overlaps which can also be visualized at a genomic level. To start OGRE's
-  GUI use function SHREC() in your R console. Find additional information and 
-  tutorials on [github](https://github.com/svenbioinf/OGRE/).
-  OGRE package version: `r packageVersion("OGRE")`
 output:
-  rmarkdown::html_document:
+  pdf_document:
+    toc: yes
+  rmarkdown::pdf_document:
     highlight: pygments
-    toc: true
+    toc: yes
     fig_width: 5
-vignette: >
-  %\VignetteIndexEntry{OGRE}
-  %\VignetteEngine{knitr::rmarkdown}
-  %\VignetteEncoding{UTF-8}
-  %\usepackage[utf8]{inputenc}
-  %\VignetteBuilder{knitr}
+abstract: |
+  OGRE calculates overlap between user defined annotated genomic region datasets. Any regions can be supplied such as public annotations (genes), genetic variation (SNPs, mutations), regulatory elements (TFBS, promoters, CpG islands) and basically all types of NGS output from sequencing experiments. After overlap calculation, key numbers help analyse the extend of overlaps which can also be visualized at a genomic level. To start OGRE's GUI use function SHREC() in your R console. Find additional information and  tutorials on [github](https://github.com/svenbioinf/OGRE/). OGRE package version: `r packageVersion("OGRE")`
+vignette: |
+  %\VignetteIndexEntry{OGRE} %\VignetteEngine{knitr::rmarkdown} %\VignetteEncoding{UTF-8} %\usepackage[utf8]{inputenc} %\VignetteBuilder{knitr}
 ---
 
 ```{r echo=FALSE, out.width='30%',fig.align='center'}
@@ -126,7 +116,8 @@ subject elements. Choose labels for all region tracks by supplying a
 `trackRegionLabels` vector. Plots are stored in the same location as your 
 dataset files.
 ```{r gvizPlot, message=TRUE, echo=TRUE,warning=TRUE}
- myOGRE <- gvizPlot(myOGRE,"ENSG00000142168",showPlot = TRUE,trackRegionLabels = setNames(c("name","name"),c("genes","CGI")))#OLIG1
+ myOGRE <- gvizPlot(myOGRE,"ENSG00000142168",showPlot = TRUE,
+           trackRegionLabels = setNames(c("name","name"),c("genes","CGI")))
 ```
 
 The overlap distribution can be generated with `summarizeOverlap(myOGRE)` and outputs
@@ -137,9 +128,8 @@ and accessed by `metadata(myOGRE)$hist` and `metadata(myOGRE)$summaryDT`.
 Two tables / plots are generated. The first one showing numbers for regions with
 and without overlap and the second one showing numbers only for regions with overlap
 by excluding all others.
-Next, we generate an histogram with the number of TFBS per gene (x-axis) and the
-TFBS frequency (y-axis).When focusing only on regions with overlap, we see that 
-genes have on average (median) 54 TFBS overlaps (black dashed line).
+When focusing only on regions with overlap, we see that genes have on average
+(median) 54 TFBS overlaps.
 ```{r summarizeOverlap, message=TRUE, echo=TRUE,warning=FALSE}
  myOGRE <- summarizeOverlap(myOGRE) 
  myOGRE <- plotHist(myOGRE)
@@ -260,9 +250,5 @@ OGRE automatically infers dataset names based on your file names. You can either
 change your file names before you start OGRE or you can use 
 `names(myOGRE) <- c("NewName1", "NewName2","...")` after you read in your datasets.
 
-#   Session info
 
-```{r sessionInfo}
-sessionInfo()
-```
 
