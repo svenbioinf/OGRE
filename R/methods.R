@@ -821,7 +821,7 @@ extendGRanges <- function(OGREDataSet,name, upstream=0, downstream=0)
 #' myOGRE <- extractPromoters(myOGRE,"genes", upstream=2000, downstream=200)
 #' @export
 extractPromoters <- function(OGREDataSet,name, upstream=2000, downstream=200)     
-  #taken from https://support.bioconductor.org/p/78652/
+  #taken  from https://support.bioconductor.org/p/78652/
 {
   if (any(strand(OGREDataSet[[name]]) == "*"))
     warning("'*' ranges were treated as '+'")
