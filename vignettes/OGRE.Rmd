@@ -137,8 +137,8 @@ and accessed by `metadata(myOGRE)$hist` and `metadata(myOGRE)$summaryDT`.
 Two tables / plots are generated. The first one showing numbers for regions with
 and without overlap and the second one showing numbers only for regions with overlap
 by excluding all others.
-Next, we generate an histogram with the number of TFBS per gene (x-axis) and the
-TFBS frequency (y-axis).When focusing only on regions with overlap, we see that 
+Next, we generate an histogram with the number of TFBS per gene (x-axis, log scale) and the
+TFBS frequency (y-axis) .When focusing only on regions with overlap, we see that 
 genes have on average (median) 54 TFBS overlaps (black dashed line).
 ```{r summarizeOverlap, message=TRUE, echo=TRUE,warning=FALSE}
  myOGRE <- summarizeOverlap(myOGRE) 
@@ -147,8 +147,11 @@ genes have on average (median) 54 TFBS overlaps (black dashed line).
  metadata(myOGRE)$hist$TFBS
 ```
 
-It is possible to create an average coverage profile of all gene-datasets overlaps, 
-split in 100 bins, which represent gene bodies of all 242 genes. The plot can be 
+It is possible to create an average coverage profile of all gene-TFBS overlaps, 
+split in 100 bins, which represent gene bodies of all 242 genes. Both, forward 
+and reverse coding genes are arranged on the x-Axis and peaks indicate an TFBS
+overlap enrichment. Overlap coverage is calculated as the sum of all gene TFBS 
+overlaps in 5'-3'direction. Generated plots can be
 accessed by `metadata(myOGRE)$covPlot$TFBS` and the resulting profile shows
 an accumulation of TFBS around gene start and end positions.
 ```{r coveragePlot, message=TRUE, echo=TRUE,warning=FALSE}

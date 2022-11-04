@@ -512,7 +512,7 @@ covPlot <- function(OGREDataSet,
     #covDT <- colSums(covDT_rev)
     dt <- data.table(x=seq(1,length(covDT)),Coverage=covDT)
     p <- ggplot(dt, aes(x=x, y=Coverage)) + xlab("Region bins")+theme_classic()+
-      theme(axis.text.y=element_blank(),axis.ticks.y=element_blank())+
+      theme(axis.text.y=element_blank())+
       geom_smooth(se=FALSE)+ylab("Overlap coverage")
     metadata(OGREDataSet)$covPlot[[d]] <- (list(plot=p,data=dt))
   }
