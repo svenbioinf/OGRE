@@ -418,11 +418,11 @@ gvizPlot <- function(OGREDataSet,query,
     #Gviz plotting
     pdf(file.path(gvizPlotsFolder,paste0(q,".pdf")),width = 30/2.54,height = 20/2.54)
     plotTracks(allTracks,showOverplotting=TRUE,from = from, to = to,title.width=6,
-               rotation.title=0,background.title="white",just.group="above")
+               rotation.title=0,background.title="gray92",just.group="above")
     dev.off()
     if(showPlot){
       plotTracks(allTracks,showOverplotting=TRUE,from = from, to = to,title.width=6,
-                 rotation.title=0,background.title="white",just.group="above")
+                 rotation.title=0,background.title="gray92",just.group="above")
     }
   }
   return(OGREDataSet)
