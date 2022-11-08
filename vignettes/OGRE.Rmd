@@ -126,7 +126,8 @@ subject elements. Choose labels for all region tracks by supplying a
 `trackRegionLabels` vector. Plots are stored in the same location as your 
 dataset files.
 ```{r gvizPlot, message=TRUE, echo=TRUE,warning=TRUE}
- myOGRE <- gvizPlot(myOGRE,"ENSG00000142168",showPlot = TRUE,trackRegionLabels = setNames(c("name","name"),c("genes","CGI")))#OLIG1
+ myOGRE <- gvizPlot(myOGRE,"ENSG00000142168",showPlot = TRUE,
+                    trackRegionLabels = setNames(c("name","name"),c("genes","CGI")))
 ```
 
 The overlap distribution can be generated with `summarizeOverlap(myOGRE)` and outputs

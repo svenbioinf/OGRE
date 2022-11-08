@@ -107,7 +107,7 @@ SHREC <- function(){
                                         "First 10 queries",
                                         "User defined")
                          ,selected = "First 5 queries",),
-            textAreaInput("queriesToPlotCustom", "Status", rows = 4,
+            textAreaInput("queriesToPlotCustom", "ID list", rows = 4,
                           value="ENSG00000269011\nENSG00000142168",resize="none")
             )
           ),
