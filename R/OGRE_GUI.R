@@ -23,7 +23,7 @@ SHREC <- function(){
           menuItem("UCSC", tabName = "ucsc", icon = icon("dna")),
           actionButton("runOGRE", "Start analysis",icon("play"),style=
               "color: #fff; background-color: #ff0e00; border-color: #ff0e00"),
-          textAreaInput("datasets", "Datasets", rows = 4,value = "none"),
+         textAreaInput("datasets", "Datasets", rows = 4,value = "none"),
           br(),br(),
           h4("Status:"),
           textOutput("status1"),
@@ -105,7 +105,7 @@ SHREC <- function(){
                          choices =list("All queries", 
                                         "First 5 queries",
                                         "First 10 queries",
-                                        "User defined")
+                                        "User defined list")
                          ,selected = "First 5 queries",),
             textAreaInput("queriesToPlotCustom", "ID list", rows = 4,
                           value="ENSG00000269011\nENSG00000142168",resize="none")
@@ -137,7 +137,11 @@ SHREC <- function(){
                     tabPanel("Summary",DT::DTOutput("summary")),
                     tabPanel("Summary(only overlapping)",DT::DTOutput("summary2")),
                   ),
-                  box(title="Overlap details (wide-format)",width=12,DT::DTOutput("BestHits"),downloadButton("downloadb", "")),
+                  tags$div(
+                    title = "Region plots are generated for the first five elements in this table by default. To change this adjust settings in
+                    gviz plotting settings and rerun OGRE.",
+                  box(title="Overlap details (wide-format)",width=12,DT::DTOutput("BestHits"),downloadButton("downloadb", ""))
+                  ),
                   hr(),
                   hr(),
                   box("Overlap details (long-format)",width=12,DT::DTOutput("summtD"),  downloadButton("download1", "")),# no label: this button will be hidden
@@ -199,7 +203,8 @@ SHREC <- function(){
         if(metadata(v$myOGRE)$subjectFolder!=""){
           v$myOGRE <- readDataSetFromFolder(v$myOGRE,"subject")}
         updateTextAreaInput(session,"datasets",value = paste0(names(v$myOGRE),"\n"))
-        output$status1 <- renderText({"Dataset added. Ready"})
+        output$status1 <- renderText({paste(format(Sys.time(), format = "%H:%M"),
+                                            ": Dataset added. Ready")})
       })
       observeEvent(input$addAnnotationHub,{#Add data from AnnotationHub
         if(!is.null(input$checkboxQuery)){
@@ -210,7 +215,8 @@ SHREC <- function(){
             v$myOGRE <- addDataSetFromHub(v$myOGRE,x ,"subject")
         }}
         updateTextAreaInput(session,"datasets",value = paste0(names(v$myOGRE),"\n"))
-        output$status2 <- renderText({"Dataset added. Ready"})
+        output$status2 <- renderText({paste(format(Sys.time(), format = "%H:%M"),
+                                            ": Dataset added. Ready")})
       })
       observe({
         if("selfHits"%in%input$checkboxOverlap){v$selfHits <- TRUE}
@@ -249,11 +255,11 @@ SHREC <- function(){
         #number of queries to plot after processing
         getQueriesToPlot <- function(OGREDataSet,queriesToPlot){
           if(queriesToPlot=="All queries"){
-            return(mcols(OGREDataSet[[1]])$ID)
+            return(metadata(OGREDataSet)$sumDT[["queryID"]])
           }else if(queriesToPlot=="First 5 queries"){
-            return(mcols(OGREDataSet[[1]])$ID[seq(5)])
+            return(metadata(OGREDataSet)$sumDT[["queryID"]][seq(5)])
           }else if(queriesToPlot=="First 10 queries"){
-            return(mcols(OGREDataSet[[1]])$ID[seq(10)])
+            return(metadata(OGREDataSet)$sumDT[["queryID"]][seq(10)])
           }else if(queriesToPlot=="User defined"){
             return(strsplit(input$queriesToPlotCustom,split = "\n")[[1]])
           }
@@ -373,7 +379,8 @@ SHREC <- function(){
         output$summary <- DT::renderDT({datatable(metadata(v$myOGRE)$summaryDT[["includes0"]])})
         output$summary2 <- DT::renderDT({datatable(metadata(v$myOGRE)$summaryDT[["excludes0"]])})
         
-        output$status3 <- renderText({"Analysis finished"})
+        output$status3 <- renderText({paste(format(Sys.time(), format = "%H:%M"),
+                                            ": Analysis finished")})
       })#end run
       ###ucsc
       output$geneLinkUCSC<- DT::renderDT(server=TRUE,{
