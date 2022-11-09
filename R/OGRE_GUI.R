@@ -200,10 +200,10 @@ SHREC <- function(){
       })
       observeEvent(input$addHardDrive,{#Add data from hardDrive
         if(metadata(v$myOGRE)$queryFolder!=""){
-          browser()
-          v$myOGRE <- readDataSetFromFolder(v$myOGRE,"query")}
+          #browser()
+          v$myOGRE <- readQuery(v$myOGRE)}
         if(metadata(v$myOGRE)$subjectFolder!=""){
-          v$myOGRE <- readDataSetFromFolder(v$myOGRE,"subject")}
+          v$myOGRE <- readSubject(v$myOGRE)}
         updateTextAreaInput(session,"datasets",value = paste0(names(v$myOGRE),"\n"))
         output$status1 <- renderText({paste(format(Sys.time(), format = "%H:%M"),
                                             ": Dataset added. Ready")})
