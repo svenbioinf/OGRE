@@ -17,7 +17,8 @@ SHREC <- function(){
       dashboardSidebar(
         sidebarMenu(
           menuItem("Information", tabName = "information", icon = icon("exclamation")),
-          menuItem("Preparations", tabName = "preparations", icon = icon("cogs")),
+          menuItem("Preparations", tabName = "preparations", icon = icon("cogs"
+                                                            ,verify_fa = FALSE)),
           menuItem("Charts", tabName = "charts", icon = icon("chart-bar")),
           menuItem("Tables", tabName = "tables", icon = icon("table")),
           menuItem("UCSC", tabName = "ucsc", icon = icon("dna")),
@@ -41,7 +42,7 @@ SHREC <- function(){
         )
       ),
       dashboardBody(
-        tags$head(tags$script(HTML('Shiny.addCustomMessageHandler("jsCode",
+        shiny::tags$head(shiny::tags$script(HTML('Shiny.addCustomMessageHandler("jsCode",
                                 function(message) {eval(message.value);});'))),
         tabItems(
           tabItem(tabName = "information",
@@ -137,7 +138,7 @@ SHREC <- function(){
                     tabPanel("Summary",DT::DTOutput("summary")),
                     tabPanel("Summary(only overlapping)",DT::DTOutput("summary2")),
                   ),
-                  tags$div(
+                  shiny::tags$div(
                     title = "Region plots are generated for the first five elements in this table by default. To change this adjust settings in
                     gviz plotting settings and rerun OGRE.",
                   box(title="Overlap details (wide-format)",width=12,DT::DTOutput("BestHits"),downloadButton("downloadb", ""))
@@ -199,6 +200,7 @@ SHREC <- function(){
       })
       observeEvent(input$addHardDrive,{#Add data from hardDrive
         if(metadata(v$myOGRE)$queryFolder!=""){
+          browser()
           v$myOGRE <- readDataSetFromFolder(v$myOGRE,"query")}
         if(metadata(v$myOGRE)$subjectFolder!=""){
           v$myOGRE <- readDataSetFromFolder(v$myOGRE,"subject")}
