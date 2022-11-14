@@ -236,7 +236,9 @@ Use `S4Vectors::mcols()` on any GenomicRanges object to get/set metadata informa
 
 Datasets from external sources are often stored as .gff (v2&v3) files. Once those
 files exist in the query or subject folder and their attribute columns contain 
-"ID" and "name" information, OGRE tries to read them in.
+"ID" and "name" information, OGRE tries to load them. Working example .gff
+files can be found on [OGRE's github page](https://github.com/svenbioinf/OGRE) in
+folder: inst/extdata/gffTest.
 ```{r addgff,eval=FALSE}
 myOGRE <- OGREDataSetFromDir(queryFolder = "pathToQueryFolder",
                              subjectFolder = "pathToSubjectFolder")
@@ -245,7 +247,7 @@ myOGRE <- loadAnnotations(myOGRE)
 
 ##    How to add datasets stored as tabular files?
 
-Datasets stored as tabular files like .csv or .bed can need some preprocessing for
+Datasets stored as tabular files like .csv or .bed may need some preprocessing for
 them work with OGRE. We recommend reading them in with `read.table()` or 
 `data.table::fread()` to obtain a data frame object. After making sure the dataset 
 complies with the requirements in section [How to add custom GenomicRanges datasets?], 
