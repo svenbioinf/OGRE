@@ -46,9 +46,18 @@ readQuery=function(OGREDataSet){
     OGREDataSet[[queryName]]<- readRDS(queryPath)
     }
     else if(grepl("gff",queryPath,ignore.case=TRUE)){ #read in .gff
-      OGREDataSet[[queryName]] <- rtracklayer::import.gff(queryPath)%>%
+      OGREDataSet[[queryName]] <- rtracklayer::import.gff(queryPath,genome="hg19")%>%
       GenomeInfoDb::keepStandardChromosomes("Homo_sapiens",pruning.mode="coarse")
       GenomeInfoDb::seqlevelsStyle(OGREDataSet[[queryName]]) <- "Ensembl"
+      seqlevels(OGREDataSet[[queryName]])<-
+        seqlevels(Seqinfo(GenomeInfoDb::extractSeqlevels("Homo_sapiens", "Ensembl"),
+                                                     genome = "hg19"))
+      #getting seqlength(Chromosomes) for coverage calculation
+      OGREDS<-OGREDataSetFromDir(file.path(system.file('extdata', package = 'OGRE'),"query"),
+                                file.path(system.file('extdata', package = 'OGRE'),"subject"))
+      OGREDS<-loadAnnotations(OGREDS)
+      seqlevels(OGREDataSet)<-sortSeqlevels(seqlevels(OGREDataSet))
+      GenomeInfoDb::seqlengths(OGREDataSet[[queryName]])<-GenomeInfoDb::seqlengths(OGREDS[[1]])
     }
   }
   assertthat::assert_that(c("ID")%in%names(mcols(OGREDataSet[[queryName]])),
@@ -82,7 +91,15 @@ readSubject=function(OGREDataSet){
         tmp <- rtracklayer::import.gff(y)%>%
           GenomeInfoDb::keepStandardChromosomes("Homo_sapiens",pruning.mode="coarse")
         GenomeInfoDb::seqlevelsStyle(tmp) <- "Ensembl"
-      }
+        seqlevels(tmp)<-
+          seqlevels(Seqinfo(GenomeInfoDb::extractSeqlevels("Homo_sapiens", "Ensembl"),
+                            genome = "hg19"))
+        OGREDS=OGREDataSetFromDir(file.path(system.file('extdata', package = 'OGRE'),"query"),
+                                  file.path(system.file('extdata', package = 'OGRE'),"subject"))
+        #getting seqlength(Chromosomes) for coverage calculation
+        OGREDS<-loadAnnotations(OGREDS)
+        seqlevels(tmp)<-sortSeqlevels(seqlevels(tmp))
+        GenomeInfoDb::seqlengths(tmp)<-GenomeInfoDb::seqlengths(OGREDS[[1]])      }
       assertthat::assert_that(c("ID")%in%names(mcols(tmp)),msg="Subject must contain ID column.")
       assertthat::assert_that(!any(duplicated(tmp$ID)),msg="ID column must be unique.")
       assertthat::assert_that(length(tmp)!=0,msg=paste0("Dataset has no ranges: ",x))
@@ -495,6 +512,7 @@ covPlot <- function(OGREDataSet,
     regions <- regions[regions%in%metadata(OGREDataSet)$detailDT[subjType==d][["queryID"]]]
     cov <- GenomicRanges::coverage(OGREDataSet[[d]])
     covDT <- sapply(unique(regions),function(r){
+      print(r)
       cor <- metadata(OGREDataSet)$detailDT[queryID==r&subjType==d,]
       dt <- data.table(rCov=cov[[cor$queryChr[1]]][seq(cor$queryStart[1],cor$queryEnd[1])]%>%as.numeric()) 
       dt[,bins:=ggplot2::cut_interval(seq(1,length(rCov)), n = nbin)]#set bins)
