@@ -211,7 +211,7 @@ fOverlaps <- function(OGREDataSet,selfHits=FALSE,ignoreStrand=TRUE,...){
       #overlap ratio with reference to query.(overLen=2,queryLen=6, ratio=0.33)
       #https://support.bioconductor.org/p/72656/
       overlapRatio <- overlapWidth / width(OGREDataSet[[1]][queryHits(ol)])
-      ol <- data.table(q=queryHits(ol),s=mcols(OGREDataSet[[subj]])[subjectHits(ol),1])
+      ol <- data.table(q=queryHits(ol),s=mcols(OGREDataSet[[subj]])[subjectHits(ol),"ID"])
       detailDT <- rbind(detailDT,data.table(
        queryID=mcols(OGREDataSet[[1]])[ol$q,"ID"],
        queryType=names(OGREDataSet)[1],
@@ -512,7 +512,6 @@ covPlot <- function(OGREDataSet,
     regions <- regions[regions%in%metadata(OGREDataSet)$detailDT[subjType==d][["queryID"]]]
     cov <- GenomicRanges::coverage(OGREDataSet[[d]])
     covDT <- sapply(unique(regions),function(r){
-      print(r)
       cor <- metadata(OGREDataSet)$detailDT[queryID==r&subjType==d,]
       dt <- data.table(rCov=cov[[cor$queryChr[1]]][seq(cor$queryStart[1],cor$queryEnd[1])]%>%as.numeric()) 
       dt[,bins:=ggplot2::cut_interval(seq(1,length(rCov)), n = nbin)]#set bins)
