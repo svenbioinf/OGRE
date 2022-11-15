@@ -125,7 +125,7 @@ Using the `Gviz` visualization each query can be displayed with all overlapping
 subject elements. Choose labels for all region tracks by supplying a 
 `trackRegionLabels` vector. Plots are stored in the same location as your 
 dataset files.
-```{r gvizPlot, message=TRUE, echo=TRUE,warning=TRUE}
+```{r gvizPlot, message=TRUE, echo=TRUE,warning=FALSE}
  myOGRE <- gvizPlot(myOGRE,"ENSG00000142168",showPlot = TRUE,
                     trackRegionLabels = setNames(c("name","name"),c("genes","CGI")))
 ```
@@ -139,7 +139,7 @@ Two tables / plots are generated. The first one showing numbers for regions with
 and without overlap and the second one showing numbers only for regions with overlap
 by excluding all others.
 Next, we generate an histogram with the number of TFBS per gene (x-axis, log scale) and the
-TFBS frequency (y-axis) .When focusing only on regions with overlap, we see that 
+TFBS frequency (y-axis). When focusing only on regions with overlap, we see that 
 genes have on average (median) 54 TFBS overlaps (black dashed line).
 ```{r summarizeOverlap, message=TRUE, echo=TRUE,warning=FALSE}
  myOGRE <- summarizeOverlap(myOGRE) 
