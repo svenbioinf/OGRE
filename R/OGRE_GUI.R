@@ -276,7 +276,7 @@ SHREC <- function(){
                              trackRegionLabels = setNames(c("name","name"),c("genes","CGI")))
         addResourcePath("gvizPlotsFolder", metadata(v$myOGRE)$gvizPlotsFolder)
         #link plots to QueryIDs
-        metadata(v$myOGRE)$sumDT[,queryID:=paste0("<a target='_blank' href='",
+        metadata(v$myOGRE)$sumDT[,queryID_plot:=paste0("<a target='_blank' href='",
                     "gvizPlotsFolder","/",queryID,".pdf","'>",queryID,"</a>")]
         session$sendCustomMessage(type='jsCode', list(value = 'alert("Analysis finished");'))
         ###Tables
