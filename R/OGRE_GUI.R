@@ -200,7 +200,6 @@ SHREC <- function(){
       })
       observeEvent(input$addHardDrive,{#Add data from hardDrive
         if(metadata(v$myOGRE)$queryFolder!=""){
-          #browser()
           v$myOGRE <- readQuery(v$myOGRE)}
         if(metadata(v$myOGRE)$subjectFolder!=""){
           v$myOGRE <- readSubject(v$myOGRE)}
