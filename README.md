@@ -13,8 +13,6 @@ Key numbers help analyse the extend of overlaps which can also be visualized at 
 <<<<<<< HEAD
 
 
- 
->>>>>>> 7b14f71765c9b6cf06cdf2c58ff21489409090c6
 [Click here to download OGRE's Vignette as PDF](https://github.com/svenbioinf/OGRE/files/8412826/OGRE_Vignette.pdf)
 
 
@@ -27,7 +25,7 @@ https://user-images.githubusercontent.com/68910402/203071312-ff92a42d-05c6-4c83-
 
 
 
->>>>>>> 7b14f71765c9b6cf06cdf2c58ff21489409090c6
+
 
 ## Installation via GitHub
 For installing OGRE by GitHub use the install_github() function.
