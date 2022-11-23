@@ -118,7 +118,26 @@ library(OGRE)    # load package
 vignette("OGRE") # some information on how to use the package
 ```
 
+## Installation via docker
 
+Using docker you can easily install OGRE with the latest R and RStudio software
+and all required packages already included. 
+For this to work, your local computer needs to have docker installed. 
+You can then pull OGRE's docker file from dockerHub and install by copying the
+following to your shell (console)
+```{r}
+sudo docker pull svenbioinf/ogre:1
+sudo docker run -e PASSWORD=ogre -p 8787:8787 svenbioinf/ogre:1
+```
+After installation, open RStudio using your favorite browser on 
+[http://localhost:8787](http://localhost:8787)
+username=rstudio, password=ogre 
+You can then load OGRE, browse the vignette or run the GUI with
+```{r}
+library("OGRE")
+vignette("OGRE")
+SHREC()
+```
 
 ## Contact
 
