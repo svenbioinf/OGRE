@@ -35,7 +35,7 @@ For installing OGRE by GitHub use the install_github() function.
 if(!requireNamespace("remotes", quietly = TRUE)){
     install.packages("remotes")
 }
-remotes::install_github("svenbioinf/OGRE")
+remotes::install_github("svenbioinf/OGRE",build_vignettes = TRUE)
 
 ```
 
@@ -131,7 +131,7 @@ sudo docker run -e PASSWORD=ogre -p 8787:8787 svenbioinf/ogre:1
 ```
 After installation, open RStudio using your favorite browser on 
 [http://localhost:8787](http://localhost:8787)
-username=rstudio, password=ogre 
+username=rstudio, password=ogre. 
 You can then load OGRE, browse the vignette or run the GUI with
 ```{r}
 library("OGRE")
