@@ -24,7 +24,6 @@ loadAnnotations <- function(OGREDataSet){
 
 
 
-
 #' Read query dataset
 #'
 #' [readQuery()] scanns `queryFolder` for a `GRanges` object stored as .RDS/.rds
@@ -49,15 +48,18 @@ readQuery=function(OGREDataSet){
       OGREDataSet[[queryName]] <- rtracklayer::import.gff(queryPath,genome="hg19")%>%
       GenomeInfoDb::keepStandardChromosomes("Homo_sapiens",pruning.mode="coarse")
       GenomeInfoDb::seqlevelsStyle(OGREDataSet[[queryName]]) <- "Ensembl"
-      seqlevels(OGREDataSet[[queryName]])<-
-        seqlevels(Seqinfo(GenomeInfoDb::extractSeqlevels("Homo_sapiens", "Ensembl"),
+      GenomeInfoDb::seqlevels(OGREDataSet[[queryName]])<-
+        GenomeInfoDb::seqlevels(GenomeInfoDb::Seqinfo(
+          GenomeInfoDb::extractSeqlevels("Homo_sapiens", "Ensembl"),
                                                      genome = "hg19"))
       #getting seqlength(Chromosomes) for coverage calculation
       OGREDS<-OGREDataSetFromDir(file.path(system.file('extdata', package = 'OGRE'),"query"),
                                 file.path(system.file('extdata', package = 'OGRE'),"subject"))
       OGREDS<-loadAnnotations(OGREDS)
-      seqlevels(OGREDataSet)<-sortSeqlevels(seqlevels(OGREDataSet))
-      GenomeInfoDb::seqlengths(OGREDataSet[[queryName]])<-GenomeInfoDb::seqlengths(OGREDS[[1]])
+      GenomeInfoDb::seqlevels(OGREDataSet)<-GenomeInfoDb::sortSeqlevels(
+        GenomeInfoDb::seqlevels(OGREDataSet))
+      GenomeInfoDb::seqlengths(OGREDataSet[[queryName]])<-
+        GenomeInfoDb::seqlengths(OGREDS[[1]])
     }
   }
   assertthat::assert_that(c("ID")%in%names(mcols(OGREDataSet[[queryName]])),
@@ -91,15 +93,17 @@ readSubject=function(OGREDataSet){
         tmp <- rtracklayer::import.gff(y)%>%
           GenomeInfoDb::keepStandardChromosomes("Homo_sapiens",pruning.mode="coarse")
         GenomeInfoDb::seqlevelsStyle(tmp) <- "Ensembl"
-        seqlevels(tmp)<-
-          seqlevels(Seqinfo(GenomeInfoDb::extractSeqlevels("Homo_sapiens", "Ensembl"),
-                            genome = "hg19"))
+        GenomeInfoDb::seqlevels(tmp)<-
+          GenomeInfoDb::seqlevels(GenomeInfoDb::Seqinfo(
+            GenomeInfoDb::extractSeqlevels("Homo_sapiens", "Ensembl"),
+            genome = "hg19"))
         OGREDS=OGREDataSetFromDir(file.path(system.file('extdata', package = 'OGRE'),"query"),
                                   file.path(system.file('extdata', package = 'OGRE'),"subject"))
         #getting seqlength(Chromosomes) for coverage calculation
         OGREDS<-loadAnnotations(OGREDS)
-        seqlevels(tmp)<-sortSeqlevels(seqlevels(tmp))
-        GenomeInfoDb::seqlengths(tmp)<-GenomeInfoDb::seqlengths(OGREDS[[1]])      }
+        GenomeInfoDb::seqlevels(tmp)<-
+          GenomeInfoDb::sortSeqlevels(GenomeInfoDb::seqlevels(tmp))
+        GenomeInfoDb::seqlengths(tmp)<-GenomeInfoDb::seqlengths(OGREDS[[1]])}
       assertthat::assert_that(c("ID")%in%names(mcols(tmp)),msg="Subject must contain ID column.")
       assertthat::assert_that(!any(duplicated(tmp$ID)),msg="ID column must be unique.")
       assertthat::assert_that(length(tmp)!=0,msg=paste0("Dataset has no ranges: ",x))
@@ -274,7 +278,7 @@ fOverlaps <- function(OGREDataSet,selfHits=FALSE,ignoreStrand=TRUE,...){
 sumPlot <- function(OGREDataSet){
   assert_that(!is.null(metadata(OGREDataSet)$sumDT),
               msg="No data to generate sumPlot!")
-  xtext <- lab <- NULL
+  xtext <- lab <-queryLog<- NULL
   #summary barplot
   query_N <- length(unique(mcols(OGREDataSet[[1]])$ID))
   query_ol <- length(unique(metadata(OGREDataSet)$sumDT$queryID))
@@ -502,6 +506,7 @@ covPlot <- function(OGREDataSet,
                      datasets=names(OGREDataSet)[seq(2,length(OGREDataSet))],
                      nbin=100){
   message("Generating coverage plot(s), this might take a while...")
+  subjType<-queryID<-bins<-rCov<-ID<-x<-Coverage<-NULL
   #filter out queries<nbin
   #regions that are at least nbin nucleotides long 
   message("Excluding regions with nucleotides<nbin")
@@ -621,6 +626,7 @@ addDataSetFromHub <- function(OGREDataSet,dataSet,type){
   assertthat::assert_that(dataSet%in%listPredefinedDataSets(),
                           msg=paste("Parameter dataSet type must be among:",
                           paste(listPredefinedDataSets(),collapse = " ")))
+  name<-ID<-NULL
   if(is.null(metadata(OGREDataSet)$aH)){aH <- AnnotationHub()}
   switch(dataSet,
          protCodingGenes={x <- aH[["AH10684"]]
@@ -653,7 +659,7 @@ addDataSetFromHub <- function(OGREDataSet,dataSet,type){
          Promoters={
            x <- as.data.table(rtracklayer::import.gff("http://ftp.ensembl.org/pub/grch37/current/regulation/homo_sapiens/homo_sapiens.GRCh37.Regulatory_Build.regulatory_features.20201218.gff.gz"))
            x <- x[type%in%c("promoter","promoter_flanking_region"),c("seqnames","start","end","ID")]
-           x[,name:=sub(".*:", "", ID)  ]
+           x[,name:=sub(".*:", "", ID)]
            x <- makeGRangesFromDataFrame(x,keep.extra.columns = TRUE)
            x <- GenomeInfoDb::keepStandardChromosomes(x,"Homo_sapiens",
                                                       pruning.mode="coarse")

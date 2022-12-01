@@ -126,9 +126,9 @@ For this to work, your local computer needs to have docker installed.
 ```{r}
 sudo apt install docker.io #on linux via console
 ```
-For windows just follow instruction on: [docker.com](https://docs.docker.com/desktop/install/windows-install/)
+For windows just follow instructions on: [docker.com](https://docs.docker.com/desktop/install/windows-install/).
 You can then pull OGRE's docker file from dockerHub and install by copying the
-following to your shell (console)
+following to your shell (console).
 ```{r}
 sudo docker pull svenbioinf/ogre:1 #on linux shell
 sudo docker run -e PASSWORD=ogre -p 8787:8787 svenbioinf/ogre:1 #on linux shell

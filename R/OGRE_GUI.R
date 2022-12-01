@@ -229,6 +229,7 @@ SHREC <- function(){
       
 
       observeEvent(input$runOGRE, { #start main processing----------------------
+        queryID_plot<-NULL
         showNotification(paste("Analysis started"), duration = 3)
         #session$sendCustomMessage(type='jsCode', list(value = 'alert("Started calculation");'))
         if(isEmpty(v$myOGRE)){#if myOGRE is empty, use example data
